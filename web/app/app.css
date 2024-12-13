@@ -4,9 +4,23 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-white dark:bg-gray-950 text-black dark:text-white font-sans;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
+  }
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+@layer utilities {
+  .h-full-screen {
+    height: 100vh; /* Fallback */
+    height: -webkit-fill-available;
+    height: 100dvh;
   }
 }
