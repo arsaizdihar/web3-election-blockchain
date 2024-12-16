@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,8 +8,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import type { Route } from "./+types/home";
-import { useSyncProviders } from "~/hooks/useSyncProviders";
-import { Button } from "~/components/ui/button";
+import { useAccount, useConnect, useEnsName } from "wagmi";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -17,17 +18,9 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-  const providers = useSyncProviders();
-
-  const handleConnect = async (providerWithInfo: EIP6963ProviderDetail) => {
-    try {
-      const accounts = (await providerWithInfo.provider.request({
-        method: "eth_requestAccounts",
-      })) as string[];
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const { address } = useAccount();
+  const { data: candidates } = useEnsName({ address });
+  const { connectors, connect } = useConnect();
 
   return (
     <div className="h-full-screen flex flex-col justify-center items-center">
@@ -41,19 +34,18 @@ export default function Home() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {providers.map((provider) => (
+          {connectors.map((connector) => (
             <Button
-              key={provider.info.uuid}
-              onClick={() => handleConnect(provider)}
-              size="lg"
+              key={connector.id}
+              onClick={() => connect({ connector })}
               className="w-full"
             >
               <img
-                src={provider.info.icon}
-                alt={provider.info.name}
+                src={connector.icon}
+                alt={connector.name}
                 className="w-4 h-4"
               />
-              Connect with {provider.info.name}
+              Connect with {connector.name}
             </Button>
           ))}
         </CardContent>
