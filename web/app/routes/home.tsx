@@ -9,6 +9,7 @@ import {
 } from "~/components/ui/card";
 import type { Route } from "./+types/home";
 import { useAccount, useConnect, useEnsName } from "wagmi";
+import { useWriteLockWithdraw } from "~/generated";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -19,8 +20,16 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   const { address } = useAccount();
+  console.log({ address });
   const { data: candidates } = useEnsName({ address });
   const { connectors, connect } = useConnect();
+  const { writeContract } = useWriteLockWithdraw({
+    mutation: {
+      onSuccess(data, variables, context) {
+        console.log({ data, variables });
+      },
+    },
+  });
 
   return (
     <div className="h-full-screen flex flex-col justify-center items-center">
@@ -48,6 +57,7 @@ export default function Home() {
               Connect with {connector.name}
             </Button>
           ))}
+          <Button onClick={() => writeContract({ address })}>Withdraw</Button>
         </CardContent>
       </Card>
     </div>
