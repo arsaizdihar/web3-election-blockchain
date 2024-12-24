@@ -1,6 +1,8 @@
 node_modules
 .env
 
+oracle-dist
+
 # Hardhat files
 /cache
 /artifacts

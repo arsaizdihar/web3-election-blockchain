@@ -24,6 +24,8 @@
   },
   "scripts": {
     "oracle:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/server.ts",
+    "oracle:build": "tsc -p tsconfig.hono.json",
+    "oracle:start": "node oracle-dist/server.js",
     "dev": "hardhat node & yarn deploy --network localhost",
     "compile": "hardhat compile",
     "deploy": "hardhat compile && hardhat deploy",

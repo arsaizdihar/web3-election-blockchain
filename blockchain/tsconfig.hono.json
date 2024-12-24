@@ -3,12 +3,16 @@
       "target": "ESNext",
       "module": "NodeNext",
       "strict": true,
-      "verbatimModuleSyntax": true,
+      "verbatimModuleSyntax": false,
       "skipLibCheck": true,
       "types": [
         "node"
       ],
       "jsx": "react-jsx",
       "jsxImportSource": "hono/jsx",
-    }
+      "outDir": "oracle-dist",
+      "rootDir": "oracle",
+      "noEmit": true
+    },
+    "include": ["oracle/**/*"] 
   }
