@@ -9,5 +9,6 @@
         "resolveJsonModule": true
     },
     "include": ["scripts/**/*", "tasks/**/*", "test/**/*", "typechain-types/**/*"],
+    "exclude": ["oracle/**/*"],
     "files": ["./hardhat.config.ts"]
 }
