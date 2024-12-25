@@ -1,24 +1,33 @@
-import { task, types } from "hardhat/config"
+import { task } from "hardhat/config"
 
-task("deploy", "Deploy a Feedback contract")
-    .addOptionalParam("semaphore", "Semaphore contract address", undefined, types.string)
-    .addOptionalParam("logs", "Print the logs", true, types.boolean)
-    .setAction(async ({ logs, semaphore: semaphoreAddress }, { ethers, run }) => {
-        if (!semaphoreAddress) {
-            const { semaphore } = await run("deploy:semaphore", {
-                logs
-            })
+export interface DeployVotingContractArgs {
+    semaphore: string
+    pollingStationId: number
+    votingId: number
+    candidateCount: number
+    registerStartAt: Date
+    registerEndAt: Date
+    voteStartAt: Date
+    voteEndAt: Date
+}
 
-            semaphoreAddress = await semaphore.getAddress()
-        }
+task<DeployVotingContractArgs>("deploy", "Deploy a voting contract").setAction(async (args, { ethers }) => {
+    const ElectionFactory = await ethers.getContractFactory("Election")
 
-        const FeedbackFactory = await ethers.getContractFactory("Feedback")
+    const electionContract = await ElectionFactory.deploy(
+        args.semaphore,
+        args.pollingStationId,
+        args.votingId,
+        args.candidateCount,
+        Math.floor(args.registerStartAt.getTime() / 1000),
+        Math.floor(args.registerEndAt.getTime() / 1000),
+        Math.floor(args.voteStartAt.getTime() / 1000),
+        Math.floor(args.voteEndAt.getTime() / 1000)
+    )
 
-        const feedbackContract = await FeedbackFactory.deploy(semaphoreAddress)
+    console.log(
+        `Election contract for TPS ${args.pollingStationId} Voting ID ${args.votingId} deployed at ${await electionContract.getAddress()} with ${args.candidateCount} candidate. Registration ${args.registerStartAt}-${args.registerEndAt}. Voting ${args.voteStartAt}-${args.voteEndAt}`
+    )
 
-        if (logs) {
-            console.info(`Feedback contract has been deployed to: ${await feedbackContract.getAddress()}`)
-        }
-
-        return feedbackContract
-    })
+    return electionContract
+})
