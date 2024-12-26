@@ -6,7 +6,6 @@ import { ethers } from "ethers"
 import { hideBin } from "yargs/helpers"
 
 //--------------------Argument Processing--------------------
-
 const argv = yargs(hideBin(process.argv))
     .option("oracle_addr", {
         alias: "o",
@@ -61,6 +60,7 @@ const provider = new ethers.JsonRpcProvider(chain_addr)
 // const wallet = new ethers.Wallet(private_key, provider)
 // const oracleContract = new ethers.Contract(oracle_addr, ORACLE_ABI, wallet)
 
+//--------------------Functions--------------------
 // async function checkQuorumAndUpdate(requestId: any, value: any) {
 //     const quorum = await oracleContract.getQuorum()
 //     console.log(`Current Quorum: ${quorum}`)

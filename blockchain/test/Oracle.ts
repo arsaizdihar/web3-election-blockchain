@@ -28,7 +28,7 @@ describe("Oracle", () => {
             const oracles = await oracleContract.getOracles()
             const totalOracleCount = oracles.length
             expect(totalOracleCount).to.greaterThanOrEqual(
-                minQuorum,
+                Number(minQuorum),
                 `Expected totalOracleCount (${totalOracleCount}) to be greater than or equal to minQuorum (${minQuorum})`
             )
         })
@@ -86,7 +86,7 @@ describe("Oracle", () => {
 
             await asOwner.setMinQuorum(minQuorum)
             const _minQuorum = await oracleContract.minQuorum()
-            expect(_minQuorum).to.equal(minQuorum)
+            expect(Number(_minQuorum)).to.equal(minQuorum)
             await asOwner.setMinQuorum(1)
 
             for (let i = 0; i < minQuorum; i++) {
@@ -102,7 +102,7 @@ describe("Oracle", () => {
             } catch (error) {}
 
             const _minQuorum = await oracleContract.minQuorum()
-            expect(_minQuorum).to.equal(1)
+            expect(Number(_minQuorum)).to.equal(1)
         })
     })
 
@@ -116,7 +116,7 @@ describe("Oracle", () => {
 
             expect(event).to.not.be.undefined
             expect(event.fragment.name).to.equal("OnNewRequest")
-            expect(event?.args?.id).to.equal(0)
+            expect(Number(event?.args?.id)).to.equal(0)
             expect(event?.args?.url).to.equal(url)
             expect(event?.args?.attr).to.equal(attr)
         })
