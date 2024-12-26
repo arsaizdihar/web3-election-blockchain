@@ -10,9 +10,8 @@
       ],
       "jsx": "react-jsx",
       "jsxImportSource": "hono/jsx",
-      "outDir": "oracle-dist",
-      "rootDir": "oracle",
-      "noEmit": true
+      "outDir": "./oracle-dist",
+      "rootDir": "./oracle"
     },
     "include": ["oracle/**/*"] 
   }

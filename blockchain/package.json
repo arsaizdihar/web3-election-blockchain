@@ -23,10 +23,13 @@
     "access": "public"
   },
   "scripts": {
-    "oracle:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/server.ts",
     "oracle:build": "tsc -p tsconfig.hono.json",
-    "oracle:start": "node oracle-dist/server.js",
+    "oracle-api:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/api/server.ts",
+    "oracle-api:start": "node oracle-dist/api/server.js",
+    "oracle-node:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/off-chain/server.ts",
+    "oracle-node:start": "node oracle-dist/off-chain/server.js",
     "node:local": "hardhat node",
+    "dev": "hardhat node & yarn deploy --network localhost",
     "stop": "npx kill-port 8545",
     "compile": "hardhat compile",
     "deploy": "hardhat compile && hardhat deployTest --network localhost",
@@ -74,7 +77,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typechain": "^8.3.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",

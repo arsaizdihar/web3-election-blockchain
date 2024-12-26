@@ -15,7 +15,7 @@ app.get("/voters", async (c) => {
     try {
         const result = await db.GetVoters()
         return c.json({ result })
-    } catch (error) {
+    } catch (error: any) {
         return c.json({ error: error.message }, 500)
     }
 })
@@ -40,7 +40,7 @@ app.post("/voters", async (c) => {
     try {
         await db.InsertVoter(voter_id, tps_id, voting_id)
         return c.json({ success: true })
-    } catch (error) {
+    } catch (error: any) {
         return c.json({ error: error.message }, 500)
     }
 })
@@ -64,7 +64,7 @@ app.get("/voters/validity?voter_id=:voter_id&tps_id=:tps_id&voting_id=:voting_id
     try {
         const result = await db.IsVoterRegistered(voter_id, tps_id, voting_id)
         return c.json({ result })
-    } catch (error) {
+    } catch (error: any) {
         return c.json({ error: error.message }, 500)
     }
 })
