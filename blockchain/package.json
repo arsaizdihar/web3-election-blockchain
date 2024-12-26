@@ -29,7 +29,7 @@
     "node:local": "hardhat node",
     "stop": "npx kill-port 8545",
     "compile": "hardhat compile",
-    "deploy": "hardhat compile && hardhat deploy --network localhost",
+    "deploy": "hardhat compile && hardhat deployTest --network localhost",
     "verify": "hardhat verify",
     "test": "hardhat test",
     "test:coverage": "hardhat coverage",
