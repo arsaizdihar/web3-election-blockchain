@@ -17,7 +17,7 @@ describe("Oracle", () => {
         owner = signers[0]
 
         const oracleContractFactory = await ethers.getContractFactory("Oracle")
-        oracleContract = await oracleContractFactory.deploy(owner.address)
+        oracleContract = await oracleContractFactory.deploy(owner.address, [owner.address])
         await oracleContract.waitForDeployment()
     })
 
@@ -37,19 +37,41 @@ describe("Oracle", () => {
     describe("# AddOracle", function () {
         it("should add new oracle", async function () {
             const asOwner = oracleContract.connect(owner)
-            await asOwner.addOracle(signers[0].address)
+            await asOwner.addOracle(signers[1].address)
             const oracles = await oracleContract.getOracles()
-            expect(oracles).to.include(signers[0].address)
+            expect(oracles).to.include(signers[1].address)
+            expect(oracles.length).to.equal(2)
+        })
+
+        it("should not add same oracle twice", async function () {
+            const asOwner = oracleContract.connect(owner)
+            try {
+                await asOwner.addOracle(owner.address)
+            } catch (error) {}
+            const oracles = await oracleContract.getOracles()
+            expect(oracles).to.include(owner.address)
+            expect(oracles.length).to.equal(1)
         })
     })
 
     describe("# RemoveOracle", function () {
         it("should remove oracle", async function () {
             const asOwner = oracleContract.connect(owner)
-            await asOwner.addOracle(signers[0].address)
-            await asOwner.removeOracle(signers[0].address)
+            await asOwner.addOracle(signers[1].address)
+            await asOwner.removeOracle(signers[1].address)
             const oracles = await oracleContract.getOracles()
-            expect(oracles).to.not.include(signers[0].address)
+            expect(oracles).to.not.include(signers[1].address)
+            expect(oracles.length).to.equal(1)
+        })
+
+        it("should not be able to remove oracle with quorum less than number of oracles", async function () {
+            const asOwner = oracleContract.connect(owner)
+            try {
+                await asOwner.removeOracle(owner.address)
+            } catch (error) {}
+            const oracles = await oracleContract.getOracles()
+            expect(oracles).to.include(owner.address)
+            expect(oracles.length).to.equal(1)
         })
     })
 
@@ -59,16 +81,28 @@ describe("Oracle", () => {
             const asOwner = oracleContract.connect(owner)
 
             for (let i = 0; i < minQuorum; i++) {
-                await asOwner.addOracle(signers[i].address)
+                await asOwner.addOracle(signers[i + 1].address)
             }
 
             await asOwner.setMinQuorum(minQuorum)
             const _minQuorum = await oracleContract.minQuorum()
             expect(_minQuorum).to.equal(minQuorum)
+            await asOwner.setMinQuorum(1)
 
             for (let i = 0; i < minQuorum; i++) {
-                await asOwner.removeOracle(signers[i].address)
+                await asOwner.removeOracle(signers[i + 1].address)
             }
+        })
+
+        it("should not be able to set more than number of oracles", async function () {
+            const asOwner = oracleContract.connect(owner)
+
+            try {
+                await asOwner.setMinQuorum(100)
+            } catch (error) {}
+
+            const _minQuorum = await oracleContract.minQuorum()
+            expect(_minQuorum).to.equal(1)
         })
     })
 

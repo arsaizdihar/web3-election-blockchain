@@ -6,7 +6,7 @@ contract Oracle {
     address[] internal oracles;
     Request[] public requests;
     uint256 public currentId = 0;
-    uint256 public minQuorum = 0;
+    uint256 public minQuorum = 1;
     address public owner;
 
     //--------------------Structs--------------------
@@ -20,8 +20,12 @@ contract Oracle {
     }
 
     //--------------------Constructor--------------------
-    constructor(address _owner) {
+    constructor(address _owner, address[] memory _oracles) {
         owner = _owner;
+
+        for (uint256 i = 0; i < _oracles.length; i++) {
+            oracles.push(_oracles[i]);
+        }
     }
 
     //--------------------Events--------------------
@@ -37,12 +41,19 @@ contract Oracle {
     //--------------------Owner functions--------------------
     function addOracle(address oracleAddr) public onlyOwner {
         require(oracleAddr != address(0), "Invalid oracle address");
+        for (uint256 i = 0; i < oracles.length; i++) {
+            require(oracles[i] != oracleAddr, "Oracle already exists");
+        }
 
         oracles.push(oracleAddr);
     }
 
     function removeOracle(address oracleAddr) public onlyOwner {
         require(oracleAddr != address(0), "Invalid oracle address");
+        require(
+            oracles.length > minQuorum,
+            "Min quorum should be less than total oracle count"
+        );
 
         for (uint256 i = 0; i < oracles.length; i++) {
             if (oracles[i] == oracleAddr) {
