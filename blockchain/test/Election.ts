@@ -2,7 +2,7 @@ import { run } from "hardhat"
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers"
 import { Group, Identity, generateProof } from "@semaphore-protocol/core"
 import { Election, ISemaphore } from "../typechain-types"
-import { DeployVotingContractArgs } from "../tasks/deploy"
+import { DeployVotingContractArgs } from "../tasks/deploy-voting"
 
 describe("Election", () => {
     async function deployElectionFixture() {
