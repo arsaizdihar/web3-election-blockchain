@@ -19,7 +19,8 @@ describe("Oracle", () => {
     describe("# Base test", function () {
         it("should check the validity of variables", async function () {
             const minQuorum = await oracleContract.minQuorum()
-            const totalOracleCount = await oracleContract.totalOracleCount()
+            const oracles = await oracleContract.getOracles()
+            const totalOracleCount = oracles.length
             expect(totalOracleCount).to.greaterThanOrEqual(
                 minQuorum,
                 `Expected totalOracleCount (${totalOracleCount}) to be greater than or equal to minQuorum (${minQuorum})`
@@ -30,7 +31,6 @@ describe("Oracle", () => {
     describe("# CreateRequest", function () {
         it("should create a new request", async function () {
             await oracleContract.createRequest(url, attr)
-
             const filter = oracleContract.filters.OnNewRequest
             const events = await oracleContract.queryFilter(filter)
             const event = events[0]
@@ -47,7 +47,7 @@ describe("Oracle", () => {
 
     describe("# updateRequest", function () {
         // beforeEach(async function (params) {
-        //     await oracle.createRequest(url, attr)
+        //     await oracleContract.createRequest(url, attr)
         // })
         // it("should update request when quorum is reached", async function () {
         //     const value = "100"
