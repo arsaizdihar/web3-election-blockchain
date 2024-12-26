@@ -19,6 +19,11 @@ contract Oracle {
         mapping(address => uint) quorum;
     }
 
+    //--------------------Constructor--------------------
+    constructor(address _owner) {
+        owner = _owner;
+    }
+
     //--------------------Events--------------------
     event OnNewRequest(uint256 id, string url, string attr);
     event OnRequestUpdate(uint256 id, string url, string attr, string value);
