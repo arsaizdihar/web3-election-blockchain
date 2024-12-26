@@ -23,7 +23,7 @@ describe("Election", () => {
             voteEndAt: new Date("2025-12-24")
         }
 
-        const electionContract: Election = await run("deploy", deployArgs)
+        const electionContract: Election = await run("deployVoting", deployArgs)
 
         const groupId = await electionContract.groupId()
 

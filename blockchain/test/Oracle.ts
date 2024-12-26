@@ -8,8 +8,6 @@ describe("Oracle", () => {
     let oracleContract: Oracle
     let signers: HardhatEthersSigner[]
     let owner: HardhatEthersSigner
-    const url = "http://localhost:3000"
-    const attr = "test"
 
     //--------------------General Setup--------------------
     beforeEach(async function () {
@@ -34,7 +32,7 @@ describe("Oracle", () => {
         })
     })
 
-    describe("# AddOracle", function () {
+    describe("# addOracle", function () {
         it("should add new oracle", async function () {
             const asOwner = oracleContract.connect(owner)
             await asOwner.addOracle(signers[1].address)
@@ -54,7 +52,7 @@ describe("Oracle", () => {
         })
     })
 
-    describe("# RemoveOracle", function () {
+    describe("# removeOracle", function () {
         it("should remove oracle", async function () {
             const asOwner = oracleContract.connect(owner)
             await asOwner.addOracle(signers[1].address)
@@ -75,7 +73,7 @@ describe("Oracle", () => {
         })
     })
 
-    describe("# SetMinQuorum", function () {
+    describe("# setMinQuorum", function () {
         it("should set min quorum", async function () {
             const minQuorum = 3
             const asOwner = oracleContract.connect(owner)
@@ -107,28 +105,101 @@ describe("Oracle", () => {
     })
 
     //--------------------Main functionality tests--------------------
-    describe("# CreateRequest", function () {
+    describe("# createRequest", function () {
+        const voter_id = "asdasd"
+        const tps_id = 1
+        const voting_id = 1
+
         it("should create a new request", async function () {
-            await oracleContract.createRequest(url, attr)
+            const reqId = await oracleContract.createRequest(voter_id, tps_id, voting_id)
             const filter = oracleContract.filters.OnNewRequest
             const events = await oracleContract.queryFilter(filter)
-            const event = events[0]
+            const event = events[events.length - 1]
 
             expect(event).to.not.be.undefined
             expect(event.fragment.name).to.equal("OnNewRequest")
+            expect(event?.args?.voter_id).to.equal(voter_id)
             expect(Number(event?.args?.id)).to.equal(0)
-            expect(event?.args?.url).to.equal(url)
-            expect(event?.args?.attr).to.equal(attr)
+            expect(Number(event?.args?.tps_id)).to.equal(tps_id)
+            expect(Number(event?.args?.voting_id)).to.equal(voting_id)
         })
     })
 
     describe("# updateRequest", function () {
-        // beforeEach(async function (params) {
-        //     await oracleContract.createRequest(url, attr)
-        // })
-        // it("should update request when quorum is reached", async function () {
-        //     const value = "100"
-        //     await oracle.connect(addr1).updateRequest(0, oracleValue)
-        // })
+        const voter_id = "asdasd"
+        const tps_id = 1
+        const voting_id = 1
+        let reqId = 0
+
+        beforeEach(async function () {
+            let reqId = Number(await oracleContract.createRequest(voter_id, tps_id, voting_id))
+        })
+
+        it("should update an ongoing request", async function () {
+            const request = await oracleContract.requests(reqId)
+            expect(request).to.not.be.undefined
+            expect(request[4]).to.equal(false)
+            expect(request[5]).to.equal(false)
+
+            const requestVal = Number(await oracleContract.getRequestAnswer(reqId, true))
+            expect(requestVal).to.equal(0)
+
+            const asOracle = oracleContract.connect(owner)
+            await asOracle.updateRequest(reqId, true)
+
+            const updatedRequestVal = Number(await oracleContract.getRequestAnswer(reqId, true))
+            expect(updatedRequestVal).to.equal(1)
+        })
+
+        it("should be able to reach quorum", async function () {
+            const asOracle = oracleContract.connect(owner)
+            await asOracle.updateRequest(reqId, true)
+
+            const request = await oracleContract.requests(reqId)
+            expect(request[4]).to.equal(true)
+            expect(request[5]).to.equal(true)
+        })
+
+        it("should emit onQuorumReached on quorum", async function () {
+            const asOracle = oracleContract.connect(owner)
+            await asOracle.updateRequest(reqId, true)
+
+            const filter = oracleContract.filters.OnQuorumReached
+            const events = await oracleContract.queryFilter(filter)
+            const event = events[events.length - 1]
+
+            expect(event).to.not.be.undefined
+            expect(event.fragment.name).to.equal("OnQuorumReached")
+            expect(Number(event?.args?.id)).to.equal(reqId)
+            expect(event?.args?.[1]).to.equal(true)
+        })
+    })
+
+    describe("# getRequestResult", function () {
+        const voter_id = "asdasd"
+        const tps_id = 1
+        const voting_id = 1
+        let reqId = 0
+        let value = true
+
+        beforeEach(async function () {
+            let reqId = Number(await oracleContract.createRequest(voter_id, tps_id, voting_id))
+        })
+
+        it("should return a proper value when quorum is reached", async function () {
+            const asOracle = oracleContract.connect(owner)
+            await asOracle.updateRequest(reqId, value)
+
+            const result = await oracleContract.getRequestResult(reqId)
+            expect(result).to.equal(value)
+        })
+
+        it("should not return a proper value when quorum has not yet been reached", async function () {
+            let result
+            try {
+                result = await oracleContract.getRequestResult(reqId)
+            } catch (error) {}
+            expect(result).to.be.undefined
+        })
     })
 })

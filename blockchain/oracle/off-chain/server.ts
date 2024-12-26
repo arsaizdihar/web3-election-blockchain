@@ -1,5 +1,3 @@
-// _TODO: This is 100% chatgpt lmfao, check the code and see if it's correct
-
 import axios from "axios"
 import yargs from "yargs"
 import { ethers } from "ethers"
@@ -51,44 +49,60 @@ console.log("Chain Address:", chain_addr)
 //--------------------Smart Contract ABI--------------------
 const ORACLE_ABI = [
     "function updateRequest(uint256 requestId, string memory value) public",
-    "function getQuorum() public view returns (uint256)",
-    "event OnNewRequest(uint256 indexed id, string url, string attr)"
+    "event OnNewRequest(uint256 id, string voter_id, uint64 tps_id, uint64 voting_id)",
+    "event OnQuorumReached(uint256 id, bool result)"
 ]
 
 //--------------------Variables--------------------
 const provider = new ethers.JsonRpcProvider(chain_addr)
-// const wallet = new ethers.Wallet(private_key, provider)
-// const oracleContract = new ethers.Contract(oracle_addr, ORACLE_ABI, wallet)
+const wallet = new ethers.Wallet(private_key, provider)
+const oracleContract = new ethers.Contract(oracle_addr, ORACLE_ABI, wallet)
 
 //--------------------Functions--------------------
-// async function checkQuorumAndUpdate(requestId: any, value: any) {
-//     const quorum = await oracleContract.getQuorum()
-//     console.log(`Current Quorum: ${quorum}`)
+function log(message: string) {
+    console.log(`[${new Date().toISOString()}] ${message}`)
+}
 
-//     // Ensure quorum is met before proceeding with the update
-//     if (quorum > 0) {
-//         console.log(`Updating request ${requestId} with value: ${value}`)
-//         const tx = await oracleContract.updateRequest(requestId, value)
-//         await tx.wait()
-//         console.log(`Request ${requestId} updated successfully`)
-//     } else {
-//         console.log("Quorum not met, skipping update")
-//     }
-// }
+async function subscribe() {
+    log("Subscribed to the oracle contract.")
+    oracleContract.on("OnNewRequest", async (id: number, voter_id: string, tps_id: number, voting_id: number) => {
+        log(`Received new request: ${id}, ${voter_id}, ${tps_id}, ${voting_id}`)
 
-// async function fetchDataAndUpdate() {
-//     try {
-//         // Make a request to the API
-//         const response = await axios.get(`${API_ADDR}/data`)
-//         const { value } = response.data // Assuming the response contains 'value'
+        let attempts = 0
+        const maxAttempts = 5
+        const retryDelay = 2000
+        let success = false
+        let value: boolean
 
-//         // Call the contract to update the request with the fetched data
-//         const requestId = 0 // Assuming you're updating the request with ID 0 for simplicity
-//         await checkQuorumAndUpdate(requestId, value)
-//     } catch (error) {
-//         console.error("Error fetching data or updating contract:", error)
-//     }
-// }
+        while (attempts < maxAttempts && !success) {
+            try {
+                log(`Getting voter validity from the API...`)
+                const response = await axios.get(
+                    `${api_addr}/voters/validity?voter_id=${voter_id}&tps_id=${tps_id}&voting_id=${voting_id}`
+                )
+                value = response.data.result
+                success = true
+            } catch (error) {
+                attempts++
+                log(`Attempt ${attempts}/${maxAttempts}: ${error.message}`)
+                await new Promise((resolve) => setTimeout(resolve, retryDelay))
+            }
+        }
 
-// Periodically fetch data and update the contract
-// setInterval(fetchDataAndUpdate, 60000) // Every minute
+        if (!success) {
+            log("Failed to get voter validity from the API.")
+            return
+        }
+
+        log("Sending data to the oracle contract...")
+        const tx = await oracleContract.updateRequest(id, value!!)
+        log(`Transaction sent: ${tx.hash}`)
+    })
+
+    oracleContract.on("OnQuorumReached", (id: number, result: boolean) => {
+        log(`Quorum reached: ${id}, ${result}`)
+    })
+}
+
+//--------------------Main--------------------
+subscribe()

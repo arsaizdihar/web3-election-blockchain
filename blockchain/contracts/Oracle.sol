@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 contract Oracle {
     //--------------------Variables--------------------
-    address[] internal oracles;
+    address[] public oracles;
     Request[] public requests;
     uint256 public currentId = 0;
     uint256 public minQuorum = 1;
@@ -12,10 +12,12 @@ contract Oracle {
     //--------------------Structs--------------------
     struct Request {
         uint256 id;
-        string url;
-        string attr;
-        string value;
-        mapping(uint256 => string) answers;
+        string voter_id;
+        uint64 tps_id;
+        uint64 voting_id;
+        bool isResolved;
+        bool finalValue;
+        mapping(bool => uint256) answers;
         mapping(address => uint) quorum;
     }
 
@@ -29,8 +31,13 @@ contract Oracle {
     }
 
     //--------------------Events--------------------
-    event OnNewRequest(uint256 id, string url, string attr);
-    event OnRequestUpdate(uint256 id, string url, string attr, string value);
+    event OnNewRequest(
+        uint256 id,
+        string voter_id,
+        uint64 tps_id,
+        uint64 voting_id
+    );
+    event OnQuorumReached(uint256 id, bool result);
 
     //--------------------Modifiers--------------------
     modifier onlyOwner() {
@@ -78,57 +85,52 @@ contract Oracle {
         return oracles;
     }
 
-    function createRequest(string memory _url, string memory _attr) public {
+    function getRequestAnswer(
+        uint256 reqId,
+        bool answerKey
+    ) public view returns (uint256) {
+        return requests[reqId].answers[answerKey];
+    }
+
+    function createRequest(
+        string memory voter_id,
+        uint64 tps_id,
+        uint64 voting_id
+    ) public returns (uint256) {
         Request storage newRequest = requests.push();
         newRequest.id = currentId;
-        newRequest.url = _url;
-        newRequest.attr = _attr;
-        newRequest.value = "";
+        newRequest.voter_id = voter_id;
+        newRequest.tps_id = tps_id;
+        newRequest.voting_id = voting_id;
+        newRequest.isResolved = false;
+        newRequest.finalValue = false;
 
         for (uint256 index = 0; index < oracles.length; index++) {
             newRequest.quorum[oracles[index]] = 1;
         }
 
-        emit OnNewRequest(currentId, _url, _attr);
+        emit OnNewRequest(currentId, voter_id, tps_id, voting_id);
         currentId++;
+
+        return newRequest.id;
     }
 
-    function updateRequest(uint256 _id, string memory _value) public {
-        Request storage currentRequest = requests[_id];
+    function updateRequest(uint256 _id, bool value) public {
+        require(!requests[_id].isResolved, "Request is already resolved");
+        require(requests[_id].quorum[msg.sender] == 1, "Not authorized oracle");
 
-        if (currentRequest.quorum[address(msg.sender)] == 1) {
-            currentRequest.quorum[msg.sender] = 2;
+        requests[_id].quorum[msg.sender] = 2;
+        requests[_id].answers[value]++;
 
-            uint256 iter = 0;
-            bool found = false;
-            while (!found) {
-                if (bytes(currentRequest.answers[iter]).length == 0) {
-                    found = true;
-                    currentRequest.answers[iter] = _value;
-                }
-                iter++;
-            }
-
-            uint256 currentQuorum = 0;
-
-            for (uint256 i = 0; i < oracles.length; i++) {
-                bytes memory a = bytes(currentRequest.answers[i]);
-                bytes memory b = bytes(_value);
-
-                if (keccak256(a) == keccak256(b)) {
-                    currentQuorum++;
-                    if (currentQuorum >= minQuorum) {
-                        currentRequest.value = _value;
-
-                        emit OnRequestUpdate(
-                            currentRequest.id,
-                            currentRequest.url,
-                            currentRequest.attr,
-                            currentRequest.value
-                        );
-                    }
-                }
-            }
+        if (requests[_id].answers[value] >= minQuorum) {
+            requests[_id].isResolved = true;
+            requests[_id].finalValue = value;
+            emit OnQuorumReached(_id, value);
         }
+    }
+
+    function getRequestResult(uint256 _id) public view returns (bool) {
+        require(requests[_id].isResolved, "Request is not resolved yet");
+        return requests[_id].finalValue;
     }
 }
