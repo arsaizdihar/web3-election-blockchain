@@ -1,6 +1,7 @@
 import "@semaphore-protocol/hardhat"
 import { HardhatUserConfig } from "hardhat/config"
-import "./tasks/deploy"
+import "./tasks/deploy-voting"
+import "./tasks/deploy-oracle"
 
 const config: HardhatUserConfig = {
     solidity: "0.8.23",

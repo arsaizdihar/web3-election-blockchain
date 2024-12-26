@@ -23,13 +23,18 @@
     "access": "public"
   },
   "scripts": {
-    "oracle:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/server.ts",
     "oracle:build": "tsc -p tsconfig.hono.json",
-    "oracle:start": "node oracle-dist/server.js",
+    "oracle-api:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/api/server.ts",
+    "oracle-api:start": "node oracle-dist/api/server.js",
+    "oracle-node:dev": "tsx watch --tsconfig ./tsconfig.hono.json oracle/off-chain/server.ts",
+    "oracle-node:start": "node oracle-dist/off-chain/server.js",
     "node:local": "hardhat node",
+    "dev": "hardhat node & yarn deploy --network localhost",
     "stop": "npx kill-port 8545",
     "compile": "hardhat compile",
-    "deploy": "hardhat compile && hardhat deployTest --network localhost",
+    "deploy:voting": "hardhat compile && hardhat deployVoting --network localhost",
+    "deploy:oracle": "hardhat compile && hardhat deployOracle --network localhost",
+    "deploy": "hardhat compile && hardhat deploy --network localhost",
     "verify": "hardhat verify",
     "test": "hardhat test",
     "test:coverage": "hardhat coverage",
@@ -54,6 +59,7 @@
     "@types/kill-port": "^2",
     "@types/mocha": ">=9.1.0",
     "@types/node": "^20.11.20",
+    "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
     "@typescript-eslint/parser": "^7.0.2",
     "chai": "^4.2.0",
@@ -74,12 +80,15 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typechain": "^8.3.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.7",
     "@semaphore-protocol/contracts": "4.8.2",
-    "hono": "^4.6.14"
+    "hono": "^4.6.14",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "yargs": "^17.7.2"
   },
   "packageManager": "yarn@4.1.0"
 }
