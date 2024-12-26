@@ -27,6 +27,8 @@ contract Election {
     uint256 public voteStartAt;
     uint256 public voteEndAt;
 
+    uint256[] public voterCommitments;
+
     constructor(
         address semaphoreAddress,
         uint256 ipollingStationId,
@@ -60,6 +62,7 @@ contract Election {
         semaphore.addMember(groupId, identityCommitment);
 
         hasJoined[msg.sender] = true;
+        voterCommitments.push(identityCommitment);
     }
 
     function validateAndConvert(uint256 voteMessage) private view returns (uint32) {

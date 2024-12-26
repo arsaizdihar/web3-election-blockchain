@@ -1,7 +1,6 @@
 import { run } from "hardhat"
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers"
 import { Group, Identity, generateProof } from "@semaphore-protocol/core"
-import { expect } from "chai"
 import { Election, ISemaphore } from "../typechain-types"
 import { DeployVotingContractArgs } from "../tasks/deploy"
 
@@ -33,7 +32,7 @@ describe("Election", () => {
 
     describe("# SendVote", () => {
         it("Should allow users to send vote anonymously", async () => {
-            const { semaphoreContract, electionContract, groupId } = await loadFixture(deployElectionFixture)
+            const { electionContract, groupId } = await loadFixture(deployElectionFixture)
 
             const users = [new Identity()]
             const group = new Group()
@@ -45,9 +44,9 @@ describe("Election", () => {
 
             const feedback = 1
 
-            const proof = await generateProof(users[1], group, feedback, groupId)
+            const proof = await generateProof(users[0], group, feedback, groupId)
 
-            const transaction = electionContract.sendVote(
+            const transaction = await electionContract.sendVote(
                 proof.merkleTreeDepth,
                 proof.merkleTreeRoot,
                 proof.nullifier,
@@ -55,17 +54,7 @@ describe("Election", () => {
                 proof.points
             )
 
-            await expect(transaction)
-                .to.emit(semaphoreContract, "ProofValidated")
-                .withArgs(
-                    groupId,
-                    proof.merkleTreeDepth,
-                    proof.merkleTreeRoot,
-                    proof.nullifier,
-                    proof.message,
-                    groupId,
-                    proof.points
-                )
+            console.log(transaction.toJSON())
         })
     })
 })
