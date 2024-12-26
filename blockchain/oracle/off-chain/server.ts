@@ -57,8 +57,8 @@ const ORACLE_ABI = [
 
 //--------------------Variables--------------------
 const provider = new ethers.JsonRpcProvider(chain_addr)
-// const wallet = new ethers.Wallet(private_key, provider)
-// const oracleContract = new ethers.Contract(oracle_addr, ORACLE_ABI, wallet)
+const wallet = new ethers.Wallet(private_key, provider)
+const oracleContract = new ethers.Contract(oracle_addr, ORACLE_ABI, wallet)
 
 //--------------------Functions--------------------
 // async function checkQuorumAndUpdate(requestId: any, value: any) {
@@ -89,6 +89,3 @@ const provider = new ethers.JsonRpcProvider(chain_addr)
 //         console.error("Error fetching data or updating contract:", error)
 //     }
 // }
-
-// Periodically fetch data and update the contract
-// setInterval(fetchDataAndUpdate, 60000) // Every minute
