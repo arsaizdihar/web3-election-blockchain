@@ -19,10 +19,10 @@ export class Db {
         try {
             await dbInstance.run(`
                 CREATE TABLE IF NOT EXISTS voters (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     voter_id TEXT NOT NULL,
                     tps_id INTEGER NOT NULL,
-                    voting_id INTEGER NOT NULL
+                    voting_id INTEGER NOT NULL,
+                    PRIMARY KEY (voter_id, voting_id)
                 )
             `)
             console.log("Database initialized")
@@ -32,10 +32,19 @@ export class Db {
         }
     }
 
-    async InsertVoter(voter_id: string, tps_id: number, voting_id: number): Promise<void> {
+    async InsertVoter(voter_id: string, tps_id: number, voting_id: number): Promise<number> {
         const dbInstance = await Db.getInstance()
 
         try {
+            const result = await dbInstance.get(
+                `SELECT * FROM voters WHERE voter_id = ? AND voting_id = ?`,
+                voter_id,
+                voting_id
+            )
+            if (result) {
+                return 409
+            }
+
             await dbInstance.run(
                 `
                 INSERT INTO voters (voter_id, tps_id, voting_id) VALUES (?, ?, ?)
@@ -44,13 +53,15 @@ export class Db {
                 tps_id,
                 voting_id
             )
+
+            return 200
         } catch (error) {
             console.log("Failed to insert voter: ", error)
             throw error
         }
     }
 
-    async GetVoters(): Promise<boolean> {
+    async GetVoters(): Promise<any> {
         const dbInstance = await Db.getInstance()
 
         try {
