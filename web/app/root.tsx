@@ -15,6 +15,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
 
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Pilkada 2024" },
+    { name: "description", content: "Pilkada 2024" },
+  ];
+}
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
