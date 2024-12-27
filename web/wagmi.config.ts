@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [
     hardhat({
       project: "../blockchain",
+      include: ["Election.sol/**"],
     }),
     react(),
   ],
