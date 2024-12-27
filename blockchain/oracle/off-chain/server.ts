@@ -48,9 +48,9 @@ console.log("Chain Address:", chain_addr)
 
 //--------------------Smart Contract ABI--------------------
 const ORACLE_ABI = [
-    "function updateRequest(uint256 requestId, bool value) public",
-    "event OnNewRequest(uint256 id, string voter_id, uint64 tps_id, uint64 voting_id)",
-    "event OnQuorumReached(uint256 id, bool result)"
+    "function updateRequest(string voter_id, uint64 tps_id, uint64 voting_id, bool value) public",
+    "event OnNewRequest(string voter_id, uint64 tps_id, uint64 voting_id)",
+    "event OnQuorumReached(bytes32 requestHash, bool result)"
 ]
 
 //--------------------Variables--------------------
@@ -65,8 +65,11 @@ function log(message: string) {
 
 async function subscribe() {
     log("Subscribed to the oracle contract.")
-    oracleContract.on("OnNewRequest", async (id: number, voter_id: string, tps_id: number, voting_id: number) => {
-        log(`Received new request: ${id}`)
+    oracleContract.on("OnNewRequest", async (voter_id: string, tps_id: number, voting_id: number) => {
+        log(`Received new request`)
+        log(`voter_id: ${voter_id}`)
+        log(`tps_id: ${tps_id}`)
+        log(`voting_id: ${voting_id}`)
 
         let attempts = 0
         const maxAttempts = 5
@@ -81,9 +84,6 @@ async function subscribe() {
                     `${api_addr}/voters/validity?voter_id=${voter_id}&tps_id=${tps_id}&voting_id=${voting_id}`
                 )
                 value = response.data.result
-                log(`voter_id: ${voter_id}`)
-                log(`tps_id: ${tps_id}`)
-                log(`voting_id: ${voting_id}`)
                 log(`Result from the API: ${value}`)
                 success = true
             } catch (error) {
@@ -99,12 +99,12 @@ async function subscribe() {
         }
 
         log("Sending data to the oracle contract...")
-        const tx = await oracleContract.updateRequest(id, value!!)
+        const tx = await oracleContract.updateRequest(voter_id, tps_id, voting_id, value!!)
         log(`Transaction sent ${tx.hash}`)
     })
 
-    oracleContract.on("OnQuorumReached", (id: number, result: boolean) => {
-        log(`Quorum reached for request ${id}, result is: ${result}`)
+    oracleContract.on("OnQuorumReached", (requestHash: string, result: boolean) => {
+        log(`Quorum reached for request ${requestHash}, result is: ${result}`)
     })
 }
 

@@ -4,40 +4,43 @@ pragma solidity ^0.8.23;
 contract Oracle {
     //--------------------Variables--------------------
     address[] public oracles;
-    Request[] public requests;
-    uint256 public currentId = 0;
-    uint256 public minQuorum = 1;
+    uint256 public minQuorum;
     address public owner;
+
+    //bytes32 in this case should be keccak hash of voter_id, tps_id, voting_id
+    mapping(bytes32 => RequestAnswers) public requests;
 
     //--------------------Structs--------------------
     struct Request {
-        uint256 id;
         string voter_id;
         uint64 tps_id;
         uint64 voting_id;
+    }
+    struct RequestAnswers {
         bool isResolved;
         bool finalValue;
-        mapping(bool => uint256) answers;
+        uint64 yes;
+        uint64 no;
         mapping(address => uint) quorum;
     }
 
     //--------------------Constructor--------------------
-    constructor(address _owner, address[] memory _oracles) {
-        owner = _owner;
-
+    constructor(address _owner, address[] memory _oracles, uint256 _minQuorum) {
         for (uint256 i = 0; i < _oracles.length; i++) {
             oracles.push(_oracles[i]);
         }
+
+        require(
+            oracles.length >= _minQuorum,
+            "Min quorum should be less than or equal to total oracle count"
+        );
+        owner = _owner;
+        minQuorum = _minQuorum;
     }
 
     //--------------------Events--------------------
-    event OnNewRequest(
-        uint256 id,
-        string voter_id,
-        uint64 tps_id,
-        uint64 voting_id
-    );
-    event OnQuorumReached(uint256 id, bool result);
+    event OnNewRequest(string voter_id, uint64 tps_id, uint64 voting_id);
+    event OnQuorumReached(bytes32 requestHash, bool result);
 
     //--------------------Modifiers--------------------
     modifier onlyOwner() {
@@ -85,52 +88,78 @@ contract Oracle {
         return oracles;
     }
 
-    function getRequestAnswer(
-        uint256 reqId,
-        bool answerKey
-    ) public view returns (uint256) {
-        return requests[reqId].answers[answerKey];
-    }
-
     function createRequest(
         string memory voter_id,
         uint64 tps_id,
         uint64 voting_id
-    ) public returns (uint256) {
-        Request storage newRequest = requests.push();
-        newRequest.id = currentId;
-        newRequest.voter_id = voter_id;
-        newRequest.tps_id = tps_id;
-        newRequest.voting_id = voting_id;
-        newRequest.isResolved = false;
-        newRequest.finalValue = false;
+    ) public {
+        bytes32 requestHash = keccak256(
+            abi.encodePacked(voter_id, tps_id, voting_id)
+        );
+        require(
+            requests[requestHash].isResolved == false &&
+                requests[requestHash].yes == 0 &&
+                requests[requestHash].no == 0,
+            "Request has already been created."
+        );
+
+        requests[requestHash].isResolved = false;
+        requests[requestHash].finalValue = false;
+        requests[requestHash].yes = 0;
+        requests[requestHash].no = 0;
 
         for (uint256 index = 0; index < oracles.length; index++) {
-            newRequest.quorum[oracles[index]] = 1;
+            requests[requestHash].quorum[oracles[index]] = 1;
         }
 
-        emit OnNewRequest(currentId, voter_id, tps_id, voting_id);
-        currentId++;
-
-        return newRequest.id;
+        emit OnNewRequest(voter_id, tps_id, voting_id);
     }
 
-    function updateRequest(uint256 _id, bool value) public {
-        require(!requests[_id].isResolved, "Request is already resolved");
-        require(requests[_id].quorum[msg.sender] == 1, "Not authorized oracle");
+    function updateRequest(
+        string memory voter_id,
+        uint64 tps_id,
+        uint64 voting_id,
+        bool value
+    ) public {
+        bytes32 requestHash = keccak256(
+            abi.encodePacked(voter_id, tps_id, voting_id)
+        );
 
-        requests[_id].quorum[msg.sender] = 2;
-        requests[_id].answers[value]++;
+        require(
+            !requests[requestHash].isResolved,
+            "Request is already resolved"
+        );
+        require(
+            requests[requestHash].quorum[msg.sender] == 1,
+            "Not authorized oracle"
+        );
 
-        if (requests[_id].answers[value] >= minQuorum) {
-            requests[_id].isResolved = true;
-            requests[_id].finalValue = value;
-            emit OnQuorumReached(_id, value);
+        requests[requestHash].quorum[msg.sender] = 2;
+        value ? requests[requestHash].yes++ : requests[requestHash].no++;
+        uint64 total = value
+            ? requests[requestHash].yes
+            : requests[requestHash].no;
+
+        if (total >= minQuorum) {
+            requests[requestHash].isResolved = true;
+            requests[requestHash].finalValue = value;
+            emit OnQuorumReached(requestHash, value);
         }
     }
 
-    function getRequestResult(uint256 _id) public view returns (bool) {
-        require(requests[_id].isResolved, "Request is not resolved yet");
-        return requests[_id].finalValue;
+    function getRequestResult(
+        string memory voter_id,
+        uint64 tps_id,
+        uint64 voting_id
+    ) public view returns (bool) {
+        bytes32 requestHash = keccak256(
+            abi.encodePacked(voter_id, tps_id, voting_id)
+        );
+
+        require(
+            requests[requestHash].isResolved,
+            "Request is not resolved yet"
+        );
+        return requests[requestHash].finalValue;
     }
 }

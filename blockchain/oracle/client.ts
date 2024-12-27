@@ -17,8 +17,8 @@ console.log("Chain Address:", chain_addr)
 
 //--------------------Smart Contract ABI--------------------
 const ORACLE_ABI = [
-    "function createRequest(string memory voter_id, uint64 tps_id, uint64 voting_id) public returns (uint256)",
-    "function getRequestResult(uint256 _id) public view returns (bool)"
+    "function createRequest(string memory voter_id, uint64 tps_id, uint64 voting_id) public",
+    "function getRequestResult(string memory voter_id, uint64 tps_id, uint64 voting_id) public view returns (bool)"
 ]
 
 //--------------------Variables--------------------
@@ -31,23 +31,26 @@ const iface = new ethers.Interface(ORACLE_ABI)
 function log(message: string) {
     console.log(`[${new Date().toISOString()}] ${message}`)
 }
-async function request(): Promise<Number> {
+async function request() {
     log("Requesting data from oracle")
     log(`voter_id: ${voter_id}`)
     log(`tps_id: ${tps_id}`)
     log(`voting_id: ${voting_id}`)
 
-    const id = Number(await oracleContract.createRequest.staticCall(voter_id, tps_id, voting_id))
-    await oracleContract.createRequest(voter_id, tps_id, voting_id)
-    log(`Request created with id: ${id}`)
+    try {
+        await oracleContract.createRequest(voter_id, tps_id, voting_id)
+        log(`Request created`)
+    } catch (error) {
+        log(`Error: ${error.message}`)
+    }
 
-    return id
+    log(`Request created`)
 }
-async function pollResult(id: Number) {
+async function pollResult() {
     while (true) {
         try {
             await new Promise((resolve) => setTimeout(resolve, pollingDelay))
-            const result = await oracleContract.getRequestResult(id)
+            const result = await oracleContract.getRequestResult(voter_id, tps_id, voting_id)
 
             log(`Request result: ${result}`)
             break
@@ -59,7 +62,7 @@ async function pollResult(id: Number) {
 async function main() {
     log("Starting client")
     const id = await request()
-    await pollResult(id)
+    await pollResult()
     log("Client request finished")
 }
 

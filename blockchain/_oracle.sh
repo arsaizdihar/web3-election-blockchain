@@ -9,10 +9,11 @@ OWNER_ADDR=
 OWNER_PKEY=
 ORACLES=
 ORACLE_CONTRACT_ADDR=
+MIN_QUORUM=
 
 # --------------------Step 3--------------------
 # Deploy contract
-# yarn deploy:oracle --owner $OWNER_ADDR --oracles $ORACLES
+# yarn deploy:oracle --owner $OWNER_ADDR --oracles $ORACLES --minQuorum $MIN_QUORUM
 
 # Build version may also be used
 # yarn oracle:build
