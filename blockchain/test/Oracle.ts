@@ -2,6 +2,7 @@ import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers"
 import { expect } from "chai"
 import { ethers } from "hardhat"
 import { Oracle } from "../typechain-types/contracts/Oracle"
+import { keccak256 } from "ethers"
 
 describe("Oracle", () => {
     //--------------------Variables--------------------
@@ -13,9 +14,10 @@ describe("Oracle", () => {
     beforeEach(async function () {
         signers = await ethers.getSigners()
         owner = signers[0]
+        let oracles = [owner.address]
 
         const oracleContractFactory = await ethers.getContractFactory("Oracle")
-        oracleContract = await oracleContractFactory.deploy(owner.address, [owner.address])
+        oracleContract = await oracleContractFactory.deploy(owner.address, oracles, oracles.length)
         await oracleContract.waitForDeployment()
     })
 
@@ -105,13 +107,15 @@ describe("Oracle", () => {
     })
 
     //--------------------Main functionality tests--------------------
-    describe("# createRequest", function () {
-        const voter_id = "asdasd"
-        const tps_id = 1
-        const voting_id = 1
+    const voter_id = "asdasd"
+    const tps_id = 1
+    const voting_id = 1
+    const requestHash = keccak256(ethers.solidityPacked(["string", "uint64", "uint64"], [voter_id, tps_id, voting_id]))
+    let value = true
 
+    describe("# createRequest", function () {
         it("should create a new request", async function () {
-            const reqId = await oracleContract.createRequest(voter_id, tps_id, voting_id)
+            await oracleContract.createRequest(voter_id, tps_id, voting_id)
             const filter = oracleContract.filters.OnNewRequest
             const events = await oracleContract.queryFilter(filter)
             const event = events[events.length - 1]
@@ -119,50 +123,61 @@ describe("Oracle", () => {
             expect(event).to.not.be.undefined
             expect(event.fragment.name).to.equal("OnNewRequest")
             expect(event?.args?.voter_id).to.equal(voter_id)
-            expect(Number(event?.args?.id)).to.equal(0)
             expect(Number(event?.args?.tps_id)).to.equal(tps_id)
             expect(Number(event?.args?.voting_id)).to.equal(voting_id)
+        })
+
+        it("should not be able to reset an ongoing request", async function () {
+            await oracleContract.createRequest(voter_id, tps_id, voting_id)
+            const asOracle = oracleContract.connect(owner)
+            await asOracle.updateRequest(voter_id, tps_id, voting_id, value)
+
+            try {
+                await oracleContract.createRequest(voter_id, tps_id, voting_id)
+            } catch (error) {}
+
+            const request = await oracleContract.requests(requestHash)
+            expect(request).to.not.be.undefined
+            expect(request[0]).to.equal(true)
+            expect(request[1]).to.equal(true)
+            expect(Number(request[2])).to.equal(1)
+            expect(Number(request[3])).to.equal(0)
         })
     })
 
     describe("# updateRequest", function () {
-        const voter_id = "asdasd"
-        const tps_id = 1
-        const voting_id = 1
-        let reqId = 0
-
         beforeEach(async function () {
             let reqId = Number(await oracleContract.createRequest(voter_id, tps_id, voting_id))
         })
 
         it("should update an ongoing request", async function () {
-            const request = await oracleContract.requests(reqId)
+            const request = await oracleContract.requests(requestHash)
             expect(request).to.not.be.undefined
-            expect(request[4]).to.equal(false)
-            expect(request[5]).to.equal(false)
-
-            const requestVal = Number(await oracleContract.getRequestAnswer(reqId, true))
-            expect(requestVal).to.equal(0)
+            expect(request[0]).to.equal(false)
+            expect(request[1]).to.equal(false)
+            expect(Number(request[2])).to.equal(0)
+            expect(Number(request[3])).to.equal(0)
 
             const asOracle = oracleContract.connect(owner)
-            await asOracle.updateRequest(reqId, true)
+            await asOracle.updateRequest(voter_id, tps_id, voting_id, value)
 
-            const updatedRequestVal = Number(await oracleContract.getRequestAnswer(reqId, true))
-            expect(updatedRequestVal).to.equal(1)
+            const updatedRequest = await oracleContract.requests(requestHash)
+            expect(Number(updatedRequest[2])).to.equal(1)
         })
 
         it("should be able to reach quorum", async function () {
             const asOracle = oracleContract.connect(owner)
-            await asOracle.updateRequest(reqId, true)
+            await asOracle.updateRequest(voter_id, tps_id, voting_id, value)
 
-            const request = await oracleContract.requests(reqId)
-            expect(request[4]).to.equal(true)
-            expect(request[5]).to.equal(true)
+            const request = await oracleContract.requests(requestHash)
+            expect(request[0]).to.equal(true)
+            expect(request[1]).to.equal(true)
+            expect(Number(request[2])).to.equal(1)
         })
 
         it("should emit onQuorumReached on quorum", async function () {
             const asOracle = oracleContract.connect(owner)
-            await asOracle.updateRequest(reqId, true)
+            await asOracle.updateRequest(voter_id, tps_id, voting_id, true)
 
             const filter = oracleContract.filters.OnQuorumReached
             const events = await oracleContract.queryFilter(filter)
@@ -170,34 +185,27 @@ describe("Oracle", () => {
 
             expect(event).to.not.be.undefined
             expect(event.fragment.name).to.equal("OnQuorumReached")
-            expect(Number(event?.args?.id)).to.equal(reqId)
             expect(event?.args?.[1]).to.equal(true)
         })
     })
 
     describe("# getRequestResult", function () {
-        const voter_id = "asdasd"
-        const tps_id = 1
-        const voting_id = 1
-        let reqId = 0
-        let value = true
-
         beforeEach(async function () {
             let reqId = Number(await oracleContract.createRequest(voter_id, tps_id, voting_id))
         })
 
         it("should return a proper value when quorum is reached", async function () {
             const asOracle = oracleContract.connect(owner)
-            await asOracle.updateRequest(reqId, value)
+            await asOracle.updateRequest(voter_id, tps_id, voting_id, value)
 
-            const result = await oracleContract.getRequestResult(reqId)
+            const result = await oracleContract.getRequestResult(voter_id, tps_id, voting_id)
             expect(result).to.equal(value)
         })
 
         it("should not return a proper value when quorum has not yet been reached", async function () {
             let result
             try {
-                result = await oracleContract.getRequestResult(reqId)
+                result = await oracleContract.getRequestResult(voter_id, tps_id, voting_id)
             } catch (error) {}
             expect(result).to.be.undefined
         })
