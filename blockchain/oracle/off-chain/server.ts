@@ -48,7 +48,7 @@ console.log("Chain Address:", chain_addr)
 
 //--------------------Smart Contract ABI--------------------
 const ORACLE_ABI = [
-    "function updateRequest(uint256 requestId, string memory value) public",
+    "function updateRequest(uint256 requestId, bool value) public",
     "event OnNewRequest(uint256 id, string voter_id, uint64 tps_id, uint64 voting_id)",
     "event OnQuorumReached(uint256 id, bool result)"
 ]
@@ -66,7 +66,7 @@ function log(message: string) {
 async function subscribe() {
     log("Subscribed to the oracle contract.")
     oracleContract.on("OnNewRequest", async (id: number, voter_id: string, tps_id: number, voting_id: number) => {
-        log(`Received new request: ${id}, ${voter_id}, ${tps_id}, ${voting_id}`)
+        log(`Received new request: ${id}`)
 
         let attempts = 0
         const maxAttempts = 5
@@ -81,6 +81,10 @@ async function subscribe() {
                     `${api_addr}/voters/validity?voter_id=${voter_id}&tps_id=${tps_id}&voting_id=${voting_id}`
                 )
                 value = response.data.result
+                log(`voter_id: ${voter_id}`)
+                log(`tps_id: ${tps_id}`)
+                log(`voting_id: ${voting_id}`)
+                log(`Result from the API: ${value}`)
                 success = true
             } catch (error) {
                 attempts++
@@ -96,11 +100,11 @@ async function subscribe() {
 
         log("Sending data to the oracle contract...")
         const tx = await oracleContract.updateRequest(id, value!!)
-        log(`Transaction sent: ${tx.hash}`)
+        log(`Transaction sent ${tx.hash}`)
     })
 
     oracleContract.on("OnQuorumReached", (id: number, result: boolean) => {
-        log(`Quorum reached: ${id}, ${result}`)
+        log(`Quorum reached for request ${id}, result is: ${result}`)
     })
 }
 
