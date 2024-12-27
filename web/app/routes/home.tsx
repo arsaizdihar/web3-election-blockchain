@@ -1,21 +1,17 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useAccount, useConnectorClient, useSignMessage } from "wagmi";
+import { useAccount } from "wagmi";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Identity } from "@semaphore-protocol/identity";
 import {
   useReadElectionGetVoterCommitments,
-  useReadElectionVoterCommitments,
   useWriteElectionRegisterAsVoter,
 } from "~/generated";
 import { elections, type Election } from "~/lib/elections";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useIdentity } from "~/lib/semaphore";
 
 export default function Home() {
-  const { address } = useAccount();
-
   return (
     <div className="h-full-screen flex flex-col justify-center items-center max-w-screen-lg mx-auto">
       <h1 className="text-4xl font-bold text-center">Pilkada 2024</h1>
@@ -42,26 +38,39 @@ function ElectionCard({ election }: { election: Election }) {
     mutation: {
       onSuccess: () => {
         refetchCommitments();
+        localStorage.setItem(
+          `isRegistered-${election.tpsId}-${election.votingId}`,
+          "true"
+        );
       },
     },
   });
 
-  const { signMessageAsync } = useSignMessage();
-  const [signature, setSignature] = useState<string | null>(null);
+  const { identity, getIdentity } = useIdentity(election.tpsId);
 
-  async function getSignature() {
-    const message = "PILKADA 2024 TPS" + election.tpsId.toString();
-    const signature = await signMessageAsync({
-      message,
-    });
-    return signature;
-  }
+  const hasVoted = useMemo(() => {
+    return localStorage.getItem(
+      `hasVoted-${election.tpsId}-${election.votingId}`
+    );
+  }, [election.tpsId, election.votingId]);
 
   const isRegistered = useMemo(() => {
-    if (!commitments || !signature) return false;
-    const identity = new Identity(signature);
-    return commitments.includes(identity.commitment);
-  }, [commitments, signature]);
+    const cache = localStorage.getItem(
+      `isRegistered-${election.tpsId}-${election.votingId}`
+    );
+    if (cache === "true") {
+      return true;
+    }
+    if (!commitments || !identity) return false;
+    const isRegistered = commitments.includes(identity.commitment);
+    if (isRegistered) {
+      localStorage.setItem(
+        `isRegistered-${election.tpsId}-${election.votingId}`,
+        "true"
+      );
+    }
+    return isRegistered;
+  }, [commitments, identity]);
 
   return (
     <Card className="group relative overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
@@ -72,21 +81,24 @@ function ElectionCard({ election }: { election: Election }) {
         <CardTitle className="text-xl text-center">{election.title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-end">
-        {signature ? (
-          <>
-            {!isRegistered ? (
-              <Button
-                className="mt-4 w-full"
-                onClick={() =>
-                  register.writeContract({
-                    address: election.contractAddress,
-                    args: [new Identity(signature).commitment],
-                  })
-                }
-              >
-                Daftar Vote
+        {iife(() => {
+          if (hasVoted) {
+            return (
+              <div className="w-full text-center bg-green-900 text-white p-2 rounded-md">
+                Anda sudah memilih
+              </div>
+            );
+          }
+          if (!identity && !isRegistered) {
+            return (
+              <Button className="mt-4 w-full" onClick={getIdentity}>
+                Cek status
               </Button>
-            ) : (
+            );
+          }
+
+          if (isRegistered) {
+            return (
               <Button
                 className="mt-4 w-full"
                 onClick={() =>
@@ -95,17 +107,28 @@ function ElectionCard({ election }: { election: Election }) {
               >
                 Mulai Vote
               </Button>
-            )}
-          </>
-        ) : (
-          <Button
-            className="mt-4 w-full"
-            onClick={() => getSignature().then(setSignature)}
-          >
-            Cek status
-          </Button>
-        )}
+            );
+          }
+
+          return (
+            <Button
+              className="mt-4 w-full"
+              onClick={() =>
+                register.writeContract({
+                  address: election.contractAddress,
+                  args: [identity.commitment],
+                })
+              }
+            >
+              Daftar Vote
+            </Button>
+          );
+        })}
       </CardContent>
     </Card>
   );
+}
+
+function iife<T>(fn: () => T): T {
+  return fn();
 }

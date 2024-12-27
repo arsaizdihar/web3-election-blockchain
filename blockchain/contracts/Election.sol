@@ -29,6 +29,10 @@ contract Election {
 
     uint256[] public voterCommitments;
 
+    mapping(uint32 => uint256) public voteCounts;
+
+    mapping(uint256 => bool) public usedNullifiers;
+
     constructor(
         address semaphoreAddress,
         uint256 ipollingStationId,
@@ -87,6 +91,8 @@ contract Election {
         require(block.timestamp >= voteStartAt, "Voting phase not yet started");
         require(block.timestamp <= voteEndAt, "Voting phase has ended");
 
+        require(!usedNullifiers[nullifier], "Vote already cast");
+
         ISemaphore.SemaphoreProof memory proof = ISemaphore.SemaphoreProof(
             merkleTreeDepth,
             merkleTreeRoot,
@@ -96,11 +102,27 @@ contract Election {
             points
         );
 
-        require(semaphore.verifyProof(groupId, proof), "You can only join once");
+        require(semaphore.verifyProof(groupId, proof), "Invalid proof");
+
+        usedNullifiers[nullifier] = true;
 
         uint32 votedCandidate = validateAndConvert(voteMessage);
 
+        voteCounts[votedCandidate]++;
+
         semaphore.validateProof(groupId, proof);
         emit Voted(pollingStationId, votingId, votedCandidate);
+    }
+
+    function getAllVoteCounts() external view returns (uint256[] memory) {
+        uint256[] memory results = new uint256[](candidateCount + 1);
+        for (uint32 i = 0; i <= candidateCount; i++) {
+            results[i] = voteCounts[i];
+        }
+        return results;
+    }
+
+    function hasVoted(uint256 nullifier) external view returns (bool) {
+        return usedNullifiers[nullifier];
     }
 }

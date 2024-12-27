@@ -59,6 +59,13 @@ export const electionAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'getAllVoteCounts',
+    outputs: [{ name: '', internalType: 'uint256[]', type: 'uint256[]' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'getVoterCommitments',
     outputs: [{ name: '', internalType: 'uint256[]', type: 'uint256[]' }],
     stateMutability: 'view',
@@ -68,6 +75,13 @@ export const electionAbi = [
     inputs: [],
     name: 'groupId',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'nullifier', internalType: 'uint256', type: 'uint256' }],
+    name: 'hasVoted',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
   {
@@ -121,6 +135,20 @@ export const electionAbi = [
     name: 'sendVote',
     outputs: [],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    name: 'usedNullifiers',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'uint32', type: 'uint32' }],
+    name: 'voteCounts',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -723,6 +751,15 @@ export const useReadElectionCandidateCount =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"getAllVoteCounts"`
+ */
+export const useReadElectionGetAllVoteCounts =
+  /*#__PURE__*/ createUseReadContract({
+    abi: electionAbi,
+    functionName: 'getAllVoteCounts',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"getVoterCommitments"`
  */
 export const useReadElectionGetVoterCommitments =
@@ -737,6 +774,14 @@ export const useReadElectionGetVoterCommitments =
 export const useReadElectionGroupId = /*#__PURE__*/ createUseReadContract({
   abi: electionAbi,
   functionName: 'groupId',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"hasVoted"`
+ */
+export const useReadElectionHasVoted = /*#__PURE__*/ createUseReadContract({
+  abi: electionAbi,
+  functionName: 'hasVoted',
 })
 
 /**
@@ -770,6 +815,23 @@ export const useReadElectionRegisterStartAt =
 export const useReadElectionSemaphore = /*#__PURE__*/ createUseReadContract({
   abi: electionAbi,
   functionName: 'semaphore',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"usedNullifiers"`
+ */
+export const useReadElectionUsedNullifiers =
+  /*#__PURE__*/ createUseReadContract({
+    abi: electionAbi,
+    functionName: 'usedNullifiers',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"voteCounts"`
+ */
+export const useReadElectionVoteCounts = /*#__PURE__*/ createUseReadContract({
+  abi: electionAbi,
+  functionName: 'voteCounts',
 })
 
 /**
