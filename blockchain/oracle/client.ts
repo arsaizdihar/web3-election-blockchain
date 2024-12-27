@@ -40,7 +40,7 @@ async function request() {
     try {
         await oracleContract.createRequest(voter_id, tps_id, voting_id)
         log(`Request created`)
-    } catch (error) {
+    } catch (error: any) {
         log(`Error: ${error.message}`)
     }
 
@@ -54,7 +54,7 @@ async function pollResult() {
 
             log(`Request result: ${result}`)
             break
-        } catch (error) {
+        } catch (error: any) {
             log(`Error: ${error.message}`)
         }
     }

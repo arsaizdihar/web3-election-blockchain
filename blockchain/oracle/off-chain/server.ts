@@ -86,7 +86,7 @@ async function subscribe() {
                 value = response.data.result
                 log(`Result from the API: ${value}`)
                 success = true
-            } catch (error) {
+            } catch (error: any) {
                 attempts++
                 log(`Attempt ${attempts}/${maxAttempts}: ${error.message}`)
                 await new Promise((resolve) => setTimeout(resolve, retryDelay))

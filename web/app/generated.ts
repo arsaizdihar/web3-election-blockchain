@@ -59,6 +59,13 @@ export const electionAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'getVoterCommitments',
+    outputs: [{ name: '', internalType: 'uint256[]', type: 'uint256[]' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'groupId',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -146,6 +153,556 @@ export const electionAbi = [
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Semaphore
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const semaphoreAbi = [
+  {
+    type: 'constructor',
+    inputs: [
+      {
+        name: '_verifier',
+        internalType: 'contract ISemaphoreVerifier',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+  },
+  { type: 'error', inputs: [], name: 'LeafAlreadyExists' },
+  { type: 'error', inputs: [], name: 'LeafCannotBeZero' },
+  { type: 'error', inputs: [], name: 'LeafDoesNotExist' },
+  { type: 'error', inputs: [], name: 'LeafGreaterThanSnarkScalarField' },
+  { type: 'error', inputs: [], name: 'Semaphore__CallerIsNotTheGroupAdmin' },
+  {
+    type: 'error',
+    inputs: [],
+    name: 'Semaphore__CallerIsNotThePendingGroupAdmin',
+  },
+  { type: 'error', inputs: [], name: 'Semaphore__GroupDoesNotExist' },
+  { type: 'error', inputs: [], name: 'Semaphore__GroupHasNoMembers' },
+  { type: 'error', inputs: [], name: 'Semaphore__InvalidProof' },
+  {
+    type: 'error',
+    inputs: [],
+    name: 'Semaphore__MerkleTreeDepthIsNotSupported',
+  },
+  { type: 'error', inputs: [], name: 'Semaphore__MerkleTreeRootIsExpired' },
+  {
+    type: 'error',
+    inputs: [],
+    name: 'Semaphore__MerkleTreeRootIsNotPartOfTheGroup',
+  },
+  {
+    type: 'error',
+    inputs: [],
+    name: 'Semaphore__YouAreUsingTheSameNullifierTwice',
+  },
+  { type: 'error', inputs: [], name: 'WrongSiblingNodes' },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'oldAdmin',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'newAdmin',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'GroupAdminPending',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'oldAdmin',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'newAdmin',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'GroupAdminUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+    ],
+    name: 'GroupCreated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'oldMerkleTreeDuration',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newMerkleTreeDuration',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'GroupMerkleTreeDurationUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'index',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'identityCommitment',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'merkleTreeRoot',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MemberAdded',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'index',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'identityCommitment',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'merkleTreeRoot',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MemberRemoved',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'index',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'identityCommitment',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newIdentityCommitment',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'merkleTreeRoot',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MemberUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'startIndex',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'identityCommitments',
+        internalType: 'uint256[]',
+        type: 'uint256[]',
+        indexed: false,
+      },
+      {
+        name: 'merkleTreeRoot',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MembersAdded',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'groupId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'merkleTreeDepth',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'merkleTreeRoot',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'nullifier',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'message',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'scope',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
+        name: 'points',
+        internalType: 'uint256[8]',
+        type: 'uint256[8]',
+        indexed: false,
+      },
+    ],
+    name: 'ProofValidated',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    name: 'acceptGroupAdmin',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      { name: 'identityCommitment', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'addMember',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'identityCommitments',
+        internalType: 'uint256[]',
+        type: 'uint256[]',
+      },
+    ],
+    name: 'addMembers',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'admin', internalType: 'address', type: 'address' },
+      { name: 'merkleTreeDuration', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'createGroup',
+    outputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'createGroup',
+    outputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'admin', internalType: 'address', type: 'address' }],
+    name: 'createGroup',
+    outputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    name: 'getGroupAdmin',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    name: 'getMerkleTreeDepth',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    name: 'getMerkleTreeRoot',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'groupId', internalType: 'uint256', type: 'uint256' }],
+    name: 'getMerkleTreeSize',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'groupCounter',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    name: 'groups',
+    outputs: [
+      { name: 'merkleTreeDuration', internalType: 'uint256', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      { name: 'identityCommitment', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'hasMember',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      { name: 'identityCommitment', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'indexOf',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      { name: 'identityCommitment', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'merkleProofSiblings',
+        internalType: 'uint256[]',
+        type: 'uint256[]',
+      },
+    ],
+    name: 'removeMember',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      { name: 'newAdmin', internalType: 'address', type: 'address' },
+    ],
+    name: 'updateGroupAdmin',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'newMerkleTreeDuration',
+        internalType: 'uint256',
+        type: 'uint256',
+      },
+    ],
+    name: 'updateGroupMerkleTreeDuration',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      { name: 'identityCommitment', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'newIdentityCommitment',
+        internalType: 'uint256',
+        type: 'uint256',
+      },
+      {
+        name: 'merkleProofSiblings',
+        internalType: 'uint256[]',
+        type: 'uint256[]',
+      },
+    ],
+    name: 'updateMember',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'proof',
+        internalType: 'struct ISemaphore.SemaphoreProof',
+        type: 'tuple',
+        components: [
+          { name: 'merkleTreeDepth', internalType: 'uint256', type: 'uint256' },
+          { name: 'merkleTreeRoot', internalType: 'uint256', type: 'uint256' },
+          { name: 'nullifier', internalType: 'uint256', type: 'uint256' },
+          { name: 'message', internalType: 'uint256', type: 'uint256' },
+          { name: 'scope', internalType: 'uint256', type: 'uint256' },
+          { name: 'points', internalType: 'uint256[8]', type: 'uint256[8]' },
+        ],
+      },
+    ],
+    name: 'validateProof',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'verifier',
+    outputs: [
+      {
+        name: '',
+        internalType: 'contract ISemaphoreVerifier',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'groupId', internalType: 'uint256', type: 'uint256' },
+      {
+        name: 'proof',
+        internalType: 'struct ISemaphore.SemaphoreProof',
+        type: 'tuple',
+        components: [
+          { name: 'merkleTreeDepth', internalType: 'uint256', type: 'uint256' },
+          { name: 'merkleTreeRoot', internalType: 'uint256', type: 'uint256' },
+          { name: 'nullifier', internalType: 'uint256', type: 'uint256' },
+          { name: 'message', internalType: 'uint256', type: 'uint256' },
+          { name: 'scope', internalType: 'uint256', type: 'uint256' },
+          { name: 'points', internalType: 'uint256[8]', type: 'uint256[8]' },
+        ],
+      },
+    ],
+    name: 'verifyProof',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+] as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // React
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,6 +720,15 @@ export const useReadElectionCandidateCount =
   /*#__PURE__*/ createUseReadContract({
     abi: electionAbi,
     functionName: 'candidateCount',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"getVoterCommitments"`
+ */
+export const useReadElectionGetVoterCommitments =
+  /*#__PURE__*/ createUseReadContract({
+    abi: electionAbi,
+    functionName: 'getVoterCommitments',
   })
 
 /**
@@ -302,4 +868,355 @@ export const useWatchElectionVotedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: electionAbi,
     eventName: 'Voted',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__
+ */
+export const useReadSemaphore = /*#__PURE__*/ createUseReadContract({
+  abi: semaphoreAbi,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"getGroupAdmin"`
+ */
+export const useReadSemaphoreGetGroupAdmin =
+  /*#__PURE__*/ createUseReadContract({
+    abi: semaphoreAbi,
+    functionName: 'getGroupAdmin',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"getMerkleTreeDepth"`
+ */
+export const useReadSemaphoreGetMerkleTreeDepth =
+  /*#__PURE__*/ createUseReadContract({
+    abi: semaphoreAbi,
+    functionName: 'getMerkleTreeDepth',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"getMerkleTreeRoot"`
+ */
+export const useReadSemaphoreGetMerkleTreeRoot =
+  /*#__PURE__*/ createUseReadContract({
+    abi: semaphoreAbi,
+    functionName: 'getMerkleTreeRoot',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"getMerkleTreeSize"`
+ */
+export const useReadSemaphoreGetMerkleTreeSize =
+  /*#__PURE__*/ createUseReadContract({
+    abi: semaphoreAbi,
+    functionName: 'getMerkleTreeSize',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"groupCounter"`
+ */
+export const useReadSemaphoreGroupCounter = /*#__PURE__*/ createUseReadContract(
+  { abi: semaphoreAbi, functionName: 'groupCounter' },
+)
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"groups"`
+ */
+export const useReadSemaphoreGroups = /*#__PURE__*/ createUseReadContract({
+  abi: semaphoreAbi,
+  functionName: 'groups',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"hasMember"`
+ */
+export const useReadSemaphoreHasMember = /*#__PURE__*/ createUseReadContract({
+  abi: semaphoreAbi,
+  functionName: 'hasMember',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"indexOf"`
+ */
+export const useReadSemaphoreIndexOf = /*#__PURE__*/ createUseReadContract({
+  abi: semaphoreAbi,
+  functionName: 'indexOf',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"verifier"`
+ */
+export const useReadSemaphoreVerifier = /*#__PURE__*/ createUseReadContract({
+  abi: semaphoreAbi,
+  functionName: 'verifier',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"verifyProof"`
+ */
+export const useReadSemaphoreVerifyProof = /*#__PURE__*/ createUseReadContract({
+  abi: semaphoreAbi,
+  functionName: 'verifyProof',
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__
+ */
+export const useWriteSemaphore = /*#__PURE__*/ createUseWriteContract({
+  abi: semaphoreAbi,
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"acceptGroupAdmin"`
+ */
+export const useWriteSemaphoreAcceptGroupAdmin =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'acceptGroupAdmin',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"addMember"`
+ */
+export const useWriteSemaphoreAddMember = /*#__PURE__*/ createUseWriteContract({
+  abi: semaphoreAbi,
+  functionName: 'addMember',
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"addMembers"`
+ */
+export const useWriteSemaphoreAddMembers = /*#__PURE__*/ createUseWriteContract(
+  { abi: semaphoreAbi, functionName: 'addMembers' },
+)
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"createGroup"`
+ */
+export const useWriteSemaphoreCreateGroup =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'createGroup',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"removeMember"`
+ */
+export const useWriteSemaphoreRemoveMember =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'removeMember',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"updateGroupAdmin"`
+ */
+export const useWriteSemaphoreUpdateGroupAdmin =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'updateGroupAdmin',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"updateGroupMerkleTreeDuration"`
+ */
+export const useWriteSemaphoreUpdateGroupMerkleTreeDuration =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'updateGroupMerkleTreeDuration',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"updateMember"`
+ */
+export const useWriteSemaphoreUpdateMember =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'updateMember',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"validateProof"`
+ */
+export const useWriteSemaphoreValidateProof =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: semaphoreAbi,
+    functionName: 'validateProof',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__
+ */
+export const useSimulateSemaphore = /*#__PURE__*/ createUseSimulateContract({
+  abi: semaphoreAbi,
+})
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"acceptGroupAdmin"`
+ */
+export const useSimulateSemaphoreAcceptGroupAdmin =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'acceptGroupAdmin',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"addMember"`
+ */
+export const useSimulateSemaphoreAddMember =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'addMember',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"addMembers"`
+ */
+export const useSimulateSemaphoreAddMembers =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'addMembers',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"createGroup"`
+ */
+export const useSimulateSemaphoreCreateGroup =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'createGroup',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"removeMember"`
+ */
+export const useSimulateSemaphoreRemoveMember =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'removeMember',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"updateGroupAdmin"`
+ */
+export const useSimulateSemaphoreUpdateGroupAdmin =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'updateGroupAdmin',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"updateGroupMerkleTreeDuration"`
+ */
+export const useSimulateSemaphoreUpdateGroupMerkleTreeDuration =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'updateGroupMerkleTreeDuration',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"updateMember"`
+ */
+export const useSimulateSemaphoreUpdateMember =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'updateMember',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link semaphoreAbi}__ and `functionName` set to `"validateProof"`
+ */
+export const useSimulateSemaphoreValidateProof =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: semaphoreAbi,
+    functionName: 'validateProof',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__
+ */
+export const useWatchSemaphoreEvent = /*#__PURE__*/ createUseWatchContractEvent(
+  { abi: semaphoreAbi },
+)
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"GroupAdminPending"`
+ */
+export const useWatchSemaphoreGroupAdminPendingEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'GroupAdminPending',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"GroupAdminUpdated"`
+ */
+export const useWatchSemaphoreGroupAdminUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'GroupAdminUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"GroupCreated"`
+ */
+export const useWatchSemaphoreGroupCreatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'GroupCreated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"GroupMerkleTreeDurationUpdated"`
+ */
+export const useWatchSemaphoreGroupMerkleTreeDurationUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'GroupMerkleTreeDurationUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"MemberAdded"`
+ */
+export const useWatchSemaphoreMemberAddedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'MemberAdded',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"MemberRemoved"`
+ */
+export const useWatchSemaphoreMemberRemovedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'MemberRemoved',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"MemberUpdated"`
+ */
+export const useWatchSemaphoreMemberUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'MemberUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"MembersAdded"`
+ */
+export const useWatchSemaphoreMembersAddedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'MembersAdded',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link semaphoreAbi}__ and `eventName` set to `"ProofValidated"`
+ */
+export const useWatchSemaphoreProofValidatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: semaphoreAbi,
+    eventName: 'ProofValidated',
   })

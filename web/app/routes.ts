@@ -8,4 +8,5 @@ import {
 export default [
   layout("routes/authed-layout.tsx", [index("routes/home.tsx")]),
   route("login", "routes/login.tsx"),
+  route("vote/:votingId/:tpsId", "routes/vote.tsx"),
 ] satisfies RouteConfig;

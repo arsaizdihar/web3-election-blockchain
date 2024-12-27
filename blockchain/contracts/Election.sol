@@ -51,6 +51,10 @@ contract Election {
         voteEndAt = ivoteEndAt;
     }
 
+    function getVoterCommitments() external view returns (uint256[] memory) {
+        return voterCommitments;
+    }
+
     function registerAsVoter(uint256 identityCommitment) external {
         require(block.timestamp >= registerStartAt, "Registration phase not yet started");
         require(block.timestamp <= registerEndAt, "Registration phase has ended");
