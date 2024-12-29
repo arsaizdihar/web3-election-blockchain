@@ -54,8 +54,6 @@ describe("Election", () => {
             const group = new Group()
 
             for (const user of users) {
-                // TODO: Oracle call
-                // await oracleContract.createRequest(user)
                 await electionContract.registerAsVoter(user.commitment)
                 group.addMember(user.commitment)
             }
