@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAccount } from "wagmi";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -13,6 +13,7 @@ import { useIdentity } from "~/lib/semaphore";
 
 export default function Home() {
   const elections = useMyElections();
+
   return (
     <div className="h-full-screen flex flex-col justify-center items-center max-w-screen-lg mx-auto">
       <h1 className="text-4xl font-bold text-center">Pilkada 2024</h1>
@@ -22,6 +23,11 @@ export default function Home() {
             <ElectionCard election={election} />
           </div>
         ))}
+      </div>
+      <div className="flex flex-wrap justify-center">
+        <Button asChild className="mt-4 w-full" variant={"secondary"}>
+          <Link to="/result">Lihat Hasil</Link>
+        </Button>
       </div>
     </div>
   );
