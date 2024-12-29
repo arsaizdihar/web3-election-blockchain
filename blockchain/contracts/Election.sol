@@ -108,9 +108,9 @@ contract Election {
 
         uint32 votedCandidate = validateAndConvert(voteMessage);
 
-        voteCounts[votedCandidate]++;
-
         semaphore.validateProof(groupId, proof);
+
+        voteCounts[votedCandidate]++;
         emit Voted(pollingStationId, votingId, votedCandidate);
     }
 

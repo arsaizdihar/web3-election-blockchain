@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   useReadElectionGetVoterCommitments,
+  useReadElectionGroupId,
   useWriteElectionSendVote,
 } from "~/generated";
 import { elections } from "~/lib/elections";
@@ -18,6 +19,13 @@ export default function Vote() {
   );
 
   const { data: commitments } = useReadElectionGetVoterCommitments({
+    address: election?.contractAddress,
+    query: {
+      enabled: !!election,
+    },
+  });
+
+  const { data: groupId } = useReadElectionGroupId({
     address: election?.contractAddress,
     query: {
       enabled: !!election,
@@ -79,18 +87,21 @@ export default function Vote() {
                     const isRegistered = commitments?.includes(
                       userIdentity.commitment
                     );
-                    if (!isRegistered) {
+                    if (!isRegistered || !groupId) {
                       return;
                     }
                     const group = new Group();
                     for (const commitment of commitments) {
                       group.addMember(commitment);
                     }
+
+                    const feedback = BigInt(index + 1);
+
                     const proof = await generateProof(
                       userIdentity,
                       group,
-                      index,
-                      election.tpsId
+                      feedback,
+                      groupId
                     );
                     vote.writeContract({
                       address: election.contractAddress,
@@ -98,7 +109,7 @@ export default function Vote() {
                         BigInt(proof.merkleTreeDepth),
                         proof.merkleTreeRoot,
                         proof.nullifier,
-                        BigInt(index + 1),
+                        feedback,
                         proof.points,
                       ],
                     });
