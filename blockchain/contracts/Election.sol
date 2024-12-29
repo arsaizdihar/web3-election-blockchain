@@ -103,14 +103,14 @@ contract Election {
         //     )
         // {} catch {}
 
-        require(
-            oracle.getRequestResult(
-                Strings.toHexString(uint256(uint160(msg.sender)), 20),
-                pollingStationId,
-                votingId
-            ),
-            "You are not allowed to vote"
-        );
+        // require(
+        //     oracle.getRequestResult(
+        //         Strings.toHexString(uint256(uint160(msg.sender)), 20),
+        //         pollingStationId,
+        //         votingId
+        //     ),
+        //     "You are not allowed to vote"
+        // );
 
         semaphore.addMember(groupId, identityCommitment);
 

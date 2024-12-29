@@ -54,7 +54,7 @@ task<DeployVotingContractArgs>("deployVoting", "Deploy a voting contract", async
 
     for (const voting of votings.votings) {
         for (const tps of voting.tpsIds) {
-            const address: string = await run("deploy-voting", {
+            const contract = await run("deploy-voting", {
                 oracle: args.oracle,
                 semaphore: await semaphoreContract.getAddress(),
                 pollingStationId: tps,
@@ -66,7 +66,7 @@ task<DeployVotingContractArgs>("deployVoting", "Deploy a voting contract", async
                 voteEndAt: new Date(votings.voteEndAt)
             })
 
-            electionAddresses[`${tps}-${voting.votingId}`] = address
+            electionAddresses[`${tps}-${voting.votingId}`] = await contract.getAddress()
         }
     }
 

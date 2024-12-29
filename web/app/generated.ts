@@ -13,9 +13,10 @@ export const electionAbi = [
   {
     type: 'constructor',
     inputs: [
+      { name: 'oracleAddress', internalType: 'address', type: 'address' },
       { name: 'semaphoreAddress', internalType: 'address', type: 'address' },
-      { name: 'ipollingStationId', internalType: 'uint256', type: 'uint256' },
-      { name: 'ivotingId', internalType: 'uint256', type: 'uint256' },
+      { name: 'ipollingStationId', internalType: 'uint64', type: 'uint64' },
+      { name: 'ivotingId', internalType: 'uint64', type: 'uint64' },
       { name: 'icandidateCount', internalType: 'uint32', type: 'uint32' },
       { name: 'iregisterStartAt', internalType: 'uint256', type: 'uint256' },
       { name: 'iregisterEndAt', internalType: 'uint256', type: 'uint256' },
@@ -87,8 +88,15 @@ export const electionAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'oracle',
+    outputs: [{ name: '', internalType: 'contract IOracle', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'pollingStationId',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
     stateMutability: 'view',
   },
   {
@@ -175,7 +183,36 @@ export const electionAbi = [
     type: 'function',
     inputs: [],
     name: 'votingId',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
+    stateMutability: 'view',
+  },
+] as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IOracle
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const iOracleAbi = [
+  {
+    type: 'function',
+    inputs: [
+      { name: 'voter_id', internalType: 'string', type: 'string' },
+      { name: 'tps_id', internalType: 'uint64', type: 'uint64' },
+      { name: 'voting_id', internalType: 'uint64', type: 'uint64' },
+    ],
+    name: 'createRequest',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'voter_id', internalType: 'string', type: 'string' },
+      { name: 'tps_id', internalType: 'uint64', type: 'uint64' },
+      { name: 'voting_id', internalType: 'uint64', type: 'uint64' },
+    ],
+    name: 'getRequestResult',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
 ] as const
@@ -785,6 +822,14 @@ export const useReadElectionHasVoted = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"oracle"`
+ */
+export const useReadElectionOracle = /*#__PURE__*/ createUseReadContract({
+  abi: electionAbi,
+  functionName: 'oracle',
+})
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link electionAbi}__ and `functionName` set to `"pollingStationId"`
  */
 export const useReadElectionPollingStationId =
@@ -930,6 +975,54 @@ export const useWatchElectionVotedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: electionAbi,
     eventName: 'Voted',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link iOracleAbi}__
+ */
+export const useReadIOracle = /*#__PURE__*/ createUseReadContract({
+  abi: iOracleAbi,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link iOracleAbi}__ and `functionName` set to `"getRequestResult"`
+ */
+export const useReadIOracleGetRequestResult =
+  /*#__PURE__*/ createUseReadContract({
+    abi: iOracleAbi,
+    functionName: 'getRequestResult',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link iOracleAbi}__
+ */
+export const useWriteIOracle = /*#__PURE__*/ createUseWriteContract({
+  abi: iOracleAbi,
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link iOracleAbi}__ and `functionName` set to `"createRequest"`
+ */
+export const useWriteIOracleCreateRequest =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: iOracleAbi,
+    functionName: 'createRequest',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link iOracleAbi}__
+ */
+export const useSimulateIOracle = /*#__PURE__*/ createUseSimulateContract({
+  abi: iOracleAbi,
+})
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link iOracleAbi}__ and `functionName` set to `"createRequest"`
+ */
+export const useSimulateIOracleCreateRequest =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: iOracleAbi,
+    functionName: 'createRequest',
   })
 
 /**
