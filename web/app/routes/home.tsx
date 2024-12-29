@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAccount } from "wagmi";
 import { Badge } from "~/components/ui/badge";
@@ -6,9 +6,17 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   useReadElectionGetVoterCommitments,
+  useReadOracleGetRequestResult,
+  useWatchOracleOnQuorumReachedEvent,
+  useWriteElection,
   useWriteElectionRegisterAsVoter,
+  useWriteOracleCreateRequest,
 } from "~/generated";
-import { useMyElections, type Election } from "~/lib/elections";
+import {
+  useMyElections,
+  useOracleAddress,
+  type Election,
+} from "~/lib/elections";
 import { useIdentity } from "~/lib/semaphore";
 
 export default function Home() {
@@ -35,6 +43,29 @@ export default function Home() {
 
 function ElectionCard({ election }: { election: Election }) {
   const navigate = useNavigate();
+  const oracleAddress = useOracleAddress();
+  const quorumEvents = useWatchOracleOnQuorumReachedEvent({
+    address: oracleAddress,
+    onLogs: (logs) => {
+      const isSuccess = logs.some((log) => {
+        const { voter_id, tps_id, voting_id, result } = log.args;
+
+        return (
+          voter_id === address &&
+          tps_id === BigInt(election.tpsId) &&
+          voting_id === BigInt(election.votingId)
+        );
+      });
+
+      if (isSuccess) {
+        register.writeContract({
+          address: election.contractAddress,
+          args: [identity.commitment],
+        });
+      }
+    },
+  });
+
   const { address } = useAccount();
   const { data: commitments, refetch: refetchCommitments } =
     useReadElectionGetVoterCommitments({
@@ -50,6 +81,13 @@ function ElectionCard({ election }: { election: Election }) {
           "true"
         );
       },
+    },
+  });
+  const requestOracle = useWriteOracleCreateRequest();
+  const getRequestOracle = useReadOracleGetRequestResult({
+    args: [address!, BigInt(election.tpsId), BigInt(election.votingId)],
+    query: {
+      enabled: requestOracle.error?.message === "Request is not resolved yet",
     },
   });
 
@@ -78,6 +116,15 @@ function ElectionCard({ election }: { election: Election }) {
     }
     return isRegistered;
   }, [commitments, identity]);
+
+  useEffect(() => {
+    if (getRequestOracle.data) {
+      register.writeContract({
+        address: election.contractAddress,
+        args: [identity!.commitment],
+      });
+    }
+  }, [getRequestOracle.data]);
 
   return (
     <Card className="group relative overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
@@ -120,13 +167,16 @@ function ElectionCard({ election }: { election: Election }) {
           return (
             <Button
               className="mt-4 w-full"
-              onClick={() =>
-                // TODO: Oracle call & listen event
-                register.writeContract({
-                  address: election.contractAddress,
-                  args: [identity.commitment],
-                })
-              }
+              onClick={() => {
+                requestOracle.writeContract({
+                  address: oracleAddress,
+                  args: [
+                    address!,
+                    BigInt(election.tpsId),
+                    BigInt(election.votingId),
+                  ],
+                });
+              }}
             >
               Daftar Vote
             </Button>

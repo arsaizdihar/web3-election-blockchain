@@ -40,7 +40,12 @@ contract Oracle {
 
     //--------------------Events--------------------
     event OnNewRequest(string voter_id, uint64 tps_id, uint64 voting_id);
-    event OnQuorumReached(bytes32 requestHash, bool result);
+    event OnQuorumReached(
+        string voter_id,
+        uint64 tps_id,
+        uint64 voting_id,
+        bool result
+    );
 
     //--------------------Modifiers--------------------
     modifier onlyOwner() {
@@ -143,7 +148,11 @@ contract Oracle {
         if (total >= minQuorum) {
             requests[requestHash].isResolved = true;
             requests[requestHash].finalValue = value;
-            emit OnQuorumReached(requestHash, value);
+            emit OnQuorumReached(
+                voter_id,
+                tps_id,
+                voting_id,
+                value);
         }
     }
 

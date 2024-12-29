@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { task } from "hardhat/config"
+import fs from "fs"
 
 // --------------------Argument Processing--------------------
 export interface DeployOracleContractArgs {
@@ -32,11 +33,14 @@ task<DeployOracleContractArgs>("deploy-oracle", "Deploy a voting contract", asyn
 // --------------------Main--------------------
 task<DeployOracleContractArgs_Raw>("deployOracle", "Deploy an oracle contract", async (args, { run }) => {
     const oracleAddresses = args.oracles.split(",")
-    await run("deploy-oracle", {
+    const contract = await run("deploy-oracle", {
         owner: args.owner,
         oracles: oracleAddresses,
         minquorum: args.minquorum
     })
+
+    const oracleContractAddress = await contract.getAddress()
+    fs.writeFileSync("../web/public/oracle-contract.json", JSON.stringify(oracleContractAddress, null, 2))
 })
     .addParam("owner", "The owner of the oracle contract")
     .addParam("oracles", "The list of oracle addresses")

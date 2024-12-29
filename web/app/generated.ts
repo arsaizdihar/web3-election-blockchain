@@ -26,6 +26,14 @@ export const electionAbi = [
     stateMutability: 'nonpayable',
   },
   {
+    type: 'error',
+    inputs: [
+      { name: 'value', internalType: 'uint256', type: 'uint256' },
+      { name: 'length', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'StringsInsufficientHexLength',
+  },
+  {
     type: 'event',
     anonymous: false,
     inputs: [
@@ -214,6 +222,168 @@ export const iOracleAbi = [
     name: 'getRequestResult',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
+  },
+] as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Oracle
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const oracleAbi = [
+  {
+    type: 'constructor',
+    inputs: [
+      { name: '_owner', internalType: 'address', type: 'address' },
+      { name: '_oracles', internalType: 'address[]', type: 'address[]' },
+      { name: '_minQuorum', internalType: 'uint256', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'voter_id',
+        internalType: 'string',
+        type: 'string',
+        indexed: false,
+      },
+      {
+        name: 'tps_id',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+      {
+        name: 'voting_id',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+    ],
+    name: 'OnNewRequest',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'voter_id',
+        internalType: 'string',
+        type: 'string',
+        indexed: false,
+      },
+      {
+        name: 'tps_id',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+      {
+        name: 'voting_id',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+      { name: 'result', internalType: 'bool', type: 'bool', indexed: false },
+    ],
+    name: 'OnQuorumReached',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'oracleAddr', internalType: 'address', type: 'address' }],
+    name: 'addOracle',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'voter_id', internalType: 'string', type: 'string' },
+      { name: 'tps_id', internalType: 'uint64', type: 'uint64' },
+      { name: 'voting_id', internalType: 'uint64', type: 'uint64' },
+    ],
+    name: 'createRequest',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getOracles',
+    outputs: [{ name: '', internalType: 'address[]', type: 'address[]' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'voter_id', internalType: 'string', type: 'string' },
+      { name: 'tps_id', internalType: 'uint64', type: 'uint64' },
+      { name: 'voting_id', internalType: 'uint64', type: 'uint64' },
+    ],
+    name: 'getRequestResult',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'minQuorum',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    name: 'oracles',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'owner',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'oracleAddr', internalType: 'address', type: 'address' }],
+    name: 'removeOracle',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'requests',
+    outputs: [
+      { name: 'isResolved', internalType: 'bool', type: 'bool' },
+      { name: 'finalValue', internalType: 'bool', type: 'bool' },
+      { name: 'yes', internalType: 'uint64', type: 'uint64' },
+      { name: 'no', internalType: 'uint64', type: 'uint64' },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '_minQuorum', internalType: 'uint256', type: 'uint256' }],
+    name: 'setMinQuorum',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'voter_id', internalType: 'string', type: 'string' },
+      { name: 'tps_id', internalType: 'uint64', type: 'uint64' },
+      { name: 'voting_id', internalType: 'uint64', type: 'uint64' },
+      { name: 'value', internalType: 'bool', type: 'bool' },
+    ],
+    name: 'updateRequest',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
 ] as const
 
@@ -1023,6 +1193,184 @@ export const useSimulateIOracleCreateRequest =
   /*#__PURE__*/ createUseSimulateContract({
     abi: iOracleAbi,
     functionName: 'createRequest',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__
+ */
+export const useReadOracle = /*#__PURE__*/ createUseReadContract({
+  abi: oracleAbi,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"getOracles"`
+ */
+export const useReadOracleGetOracles = /*#__PURE__*/ createUseReadContract({
+  abi: oracleAbi,
+  functionName: 'getOracles',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"getRequestResult"`
+ */
+export const useReadOracleGetRequestResult =
+  /*#__PURE__*/ createUseReadContract({
+    abi: oracleAbi,
+    functionName: 'getRequestResult',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"minQuorum"`
+ */
+export const useReadOracleMinQuorum = /*#__PURE__*/ createUseReadContract({
+  abi: oracleAbi,
+  functionName: 'minQuorum',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"oracles"`
+ */
+export const useReadOracleOracles = /*#__PURE__*/ createUseReadContract({
+  abi: oracleAbi,
+  functionName: 'oracles',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"owner"`
+ */
+export const useReadOracleOwner = /*#__PURE__*/ createUseReadContract({
+  abi: oracleAbi,
+  functionName: 'owner',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"requests"`
+ */
+export const useReadOracleRequests = /*#__PURE__*/ createUseReadContract({
+  abi: oracleAbi,
+  functionName: 'requests',
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link oracleAbi}__
+ */
+export const useWriteOracle = /*#__PURE__*/ createUseWriteContract({
+  abi: oracleAbi,
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"addOracle"`
+ */
+export const useWriteOracleAddOracle = /*#__PURE__*/ createUseWriteContract({
+  abi: oracleAbi,
+  functionName: 'addOracle',
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"createRequest"`
+ */
+export const useWriteOracleCreateRequest = /*#__PURE__*/ createUseWriteContract(
+  { abi: oracleAbi, functionName: 'createRequest' },
+)
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"removeOracle"`
+ */
+export const useWriteOracleRemoveOracle = /*#__PURE__*/ createUseWriteContract({
+  abi: oracleAbi,
+  functionName: 'removeOracle',
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"setMinQuorum"`
+ */
+export const useWriteOracleSetMinQuorum = /*#__PURE__*/ createUseWriteContract({
+  abi: oracleAbi,
+  functionName: 'setMinQuorum',
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"updateRequest"`
+ */
+export const useWriteOracleUpdateRequest = /*#__PURE__*/ createUseWriteContract(
+  { abi: oracleAbi, functionName: 'updateRequest' },
+)
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link oracleAbi}__
+ */
+export const useSimulateOracle = /*#__PURE__*/ createUseSimulateContract({
+  abi: oracleAbi,
+})
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"addOracle"`
+ */
+export const useSimulateOracleAddOracle =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: oracleAbi,
+    functionName: 'addOracle',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"createRequest"`
+ */
+export const useSimulateOracleCreateRequest =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: oracleAbi,
+    functionName: 'createRequest',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"removeOracle"`
+ */
+export const useSimulateOracleRemoveOracle =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: oracleAbi,
+    functionName: 'removeOracle',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"setMinQuorum"`
+ */
+export const useSimulateOracleSetMinQuorum =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: oracleAbi,
+    functionName: 'setMinQuorum',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link oracleAbi}__ and `functionName` set to `"updateRequest"`
+ */
+export const useSimulateOracleUpdateRequest =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: oracleAbi,
+    functionName: 'updateRequest',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link oracleAbi}__
+ */
+export const useWatchOracleEvent = /*#__PURE__*/ createUseWatchContractEvent({
+  abi: oracleAbi,
+})
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link oracleAbi}__ and `eventName` set to `"OnNewRequest"`
+ */
+export const useWatchOracleOnNewRequestEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: oracleAbi,
+    eventName: 'OnNewRequest',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link oracleAbi}__ and `eventName` set to `"OnQuorumReached"`
+ */
+export const useWatchOracleOnQuorumReachedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: oracleAbi,
+    eventName: 'OnQuorumReached',
   })
 
 /**

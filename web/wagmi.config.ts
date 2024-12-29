@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     hardhat({
       project: "../blockchain",
-      include: ["Election.sol/**", "Semaphore.sol/**"],
+      include: ["Election.sol/**", "Semaphore.sol/**", "Oracle.sol/**"],
     }),
     react(),
   ],

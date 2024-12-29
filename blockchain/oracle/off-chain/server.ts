@@ -49,8 +49,8 @@ console.log("Chain Address:", chain_addr)
 //--------------------Smart Contract ABI--------------------
 const ORACLE_ABI = [
     "function updateRequest(string voter_id, uint64 tps_id, uint64 voting_id, bool value) public",
-    "event OnNewRequest(string voter_id, uint64 tps_id, uint64 voting_id)",
-    "event OnQuorumReached(bytes32 requestHash, bool result)"
+    "event OnNewRequest(string voter_id, uint64 tps_id, uint64 voting_id)"
+    // "event OnQuorumReached(string voter_id,uint64 tps_id,uint64 voting_id, bool result)"
 ]
 
 //--------------------Variables--------------------
@@ -103,9 +103,9 @@ async function subscribe() {
         log(`Transaction sent ${tx.hash}`)
     })
 
-    oracleContract.on("OnQuorumReached", (requestHash: string, result: boolean) => {
-        log(`Quorum reached for request ${requestHash}, result is: ${result}`)
-    })
+    // oracleContract.on("OnQuorumReached", (voter_id: string, tps_id: number, voting_id: number, result: boolean) => {
+    //     log(`Quorum reached for request ${requestHash}, result is: ${result}`)
+    // })
 }
 
 //--------------------Main--------------------
