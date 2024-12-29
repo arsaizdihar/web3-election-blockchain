@@ -7,10 +7,11 @@ import {
   useReadElectionGroupId,
   useWriteElectionSendVote,
 } from "~/generated";
-import { elections } from "~/lib/elections";
+import { useMyElections } from "~/lib/elections";
 import { useIdentity } from "~/lib/semaphore";
 
 export default function Vote() {
+  const elections = useMyElections();
   const { tpsId, votingId } = useParams();
 
   const election = elections.find(

@@ -1,3 +1,6 @@
+import votingsData from "../../../data/votings.json";
+import { create } from "zustand";
+
 export interface Election {
   tpsId: number;
   votingId: number;
@@ -6,19 +9,32 @@ export interface Election {
   contractAddress: `0x${string}`;
 }
 
-export const elections: Election[] = [
-  {
-    tpsId: 10,
-    votingId: 1,
-    candidates: ["Candidate 1", "Candidate 2", "Candidate 3"],
-    title: "Pilkada Jawa Barat 2024",
-    contractAddress: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
-  },
-  {
-    tpsId: 10,
-    votingId: 5,
-    candidates: ["Candidate 1", "Candidate 2"],
-    title: "Pilkada Kota Bandung 2024",
-    contractAddress: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-  },
-];
+export const useElections = create<{ elections: Election[] }>((set) => ({
+  elections: [],
+}));
+
+export const fetchElections = async () => {
+  const response = await fetch("/contract-addresses.json");
+  const data = (await response.json()) as Record<string, `0x${string}`>;
+  useElections.setState(() => ({
+    elections: votingsData.votings.flatMap((voting) =>
+      voting.tpsIds.map((tpsId) => ({
+        tpsId,
+        votingId: voting.votingId,
+        candidates: voting.candidates,
+        title: voting.title,
+        contractAddress: data[`${tpsId}-${voting.votingId}`],
+      }))
+    ),
+  }));
+};
+
+export function useMyTpsId() {
+  return 10;
+}
+
+export function useMyElections() {
+  const tpsId = useMyTpsId();
+  const { elections } = useElections();
+  return elections.filter((election) => election.tpsId === tpsId);
+}

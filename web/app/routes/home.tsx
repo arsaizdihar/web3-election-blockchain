@@ -8,10 +8,11 @@ import {
   useReadElectionGetVoterCommitments,
   useWriteElectionRegisterAsVoter,
 } from "~/generated";
-import { elections, type Election } from "~/lib/elections";
+import { useMyElections, type Election } from "~/lib/elections";
 import { useIdentity } from "~/lib/semaphore";
 
 export default function Home() {
+  const elections = useMyElections();
   return (
     <div className="h-full-screen flex flex-col justify-center items-center max-w-screen-lg mx-auto">
       <h1 className="text-4xl font-bold text-center">Pilkada 2024</h1>

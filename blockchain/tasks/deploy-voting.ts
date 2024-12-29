@@ -1,23 +1,7 @@
 import { task } from "hardhat/config"
 import { ISemaphore } from "../typechain-types"
-
-const testData = {
-    votings: [
-        {
-            id: 1, // 1 for ID pilgub Jawa Barat
-            candidateCount: 3
-        },
-        {
-            id: 5, // 5 for ID piwalkot Kota Bandung
-            candidateCount: 2
-        }
-    ],
-    tpsIds: [10, 20, 30],
-    registerStartAt: new Date("2024-12-24"),
-    registerEndAt: new Date("2025-12-25"),
-    voteStartAt: new Date("2024-12-24"),
-    voteEndAt: new Date("2025-12-25")
-}
+import fs from "fs"
+import votings from "../../data/votings.json"
 
 //--------------------Argument Processing--------------------
 export interface DeployVotingContractArgs {
@@ -50,7 +34,7 @@ task<DeployVotingContractArgs>("deploy-voting", "Deploy a voting contract", asyn
         `Election contract for TPS ${args.pollingStationId} Voting ID ${args.votingId} deployed at ${await electionContract.getAddress()} with ${args.candidateCount} candidate. Registration ${args.registerStartAt}-${args.registerEndAt}. Voting ${args.voteStartAt}-${args.voteEndAt}`
     )
 
-    return electionContract
+    return electionContract.getAddress()
 })
 
 //--------------------Main--------------------
@@ -61,18 +45,24 @@ task("deployVoting", "Deploy a voting contract", async (args, { run }) => {
 
     const semaphoreContract: ISemaphore = semaphore
 
-    for (const voting of testData.votings) {
-        for (const tps of testData.tpsIds) {
-            await run("deploy-voting", {
+    const electionAddresses: Record<string, string> = {}
+
+    for (const voting of votings.votings) {
+        for (const tps of voting.tpsIds) {
+            const address: string = await run("deploy-voting", {
                 semaphore: await semaphoreContract.getAddress(),
                 pollingStationId: tps,
-                votingId: voting.id,
-                candidateCount: voting.candidateCount,
-                registerStartAt: testData.registerStartAt,
-                registerEndAt: testData.registerEndAt,
-                voteStartAt: testData.voteStartAt,
-                voteEndAt: testData.voteEndAt
+                votingId: voting.votingId,
+                candidateCount: voting.candidates.length,
+                registerStartAt: new Date(votings.registerStartAt),
+                registerEndAt: new Date(votings.registerEndAt),
+                voteStartAt: new Date(votings.voteStartAt),
+                voteEndAt: new Date(votings.voteEndAt)
             })
+
+            electionAddresses[`${tps}-${voting.votingId}`] = address
         }
     }
+
+    fs.writeFileSync("../web/public/contract-addresses.json", JSON.stringify(electionAddresses, null, 2))
 })
