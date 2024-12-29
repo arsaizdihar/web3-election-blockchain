@@ -1,13 +1,12 @@
 import { task } from "hardhat/config"
-import { DeployOracleContractArgs } from "./deploy-oracle"
 
-//--------------------Argument Processing--------------------
+// --------------------Argument Processing--------------------
 export interface DeployElectionArgs {
     owner: string
     oracles: string
 }
 
-//--------------------Functions--------------------
+// --------------------Functions--------------------
 task<DeployElectionArgs>("deploy", "Deploy an entire voting system", async (args, { run }) => {
     await run("deployVoting", {
         // _TODO: Pass from arguments

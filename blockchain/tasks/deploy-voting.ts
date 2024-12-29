@@ -1,9 +1,9 @@
 import { task } from "hardhat/config"
-import { ISemaphore } from "../typechain-types"
 import fs from "fs"
+import { ISemaphore } from "../typechain-types"
 import votings from "../../data/votings.json"
 
-//--------------------Argument Processing--------------------
+// --------------------Argument Processing--------------------
 export interface DeployVotingContractArgs {
     semaphore: string
     pollingStationId: number
@@ -15,7 +15,7 @@ export interface DeployVotingContractArgs {
     voteEndAt: Date
 }
 
-//--------------------Functions--------------------
+// --------------------Functions--------------------
 task<DeployVotingContractArgs>("deploy-voting", "Deploy a voting contract", async (args, { ethers }) => {
     const ElectionFactory = await ethers.getContractFactory("Election")
 
@@ -37,7 +37,7 @@ task<DeployVotingContractArgs>("deploy-voting", "Deploy a voting contract", asyn
     return electionContract.getAddress()
 })
 
-//--------------------Main--------------------
+// --------------------Main--------------------
 task("deployVoting", "Deploy a voting contract", async (args, { run }) => {
     const { semaphore } = await run("deploy:semaphore", {
         logs: false

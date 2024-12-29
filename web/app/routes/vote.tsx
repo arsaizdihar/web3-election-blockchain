@@ -88,7 +88,11 @@ export default function Vote() {
                     const isRegistered = commitments?.includes(
                       userIdentity.commitment
                     );
-                    if (!isRegistered || !groupId) {
+                    if (
+                      !isRegistered ||
+                      groupId === null ||
+                      groupId === undefined
+                    ) {
                       return;
                     }
                     const group = new Group();
