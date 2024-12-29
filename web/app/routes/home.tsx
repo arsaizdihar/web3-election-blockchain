@@ -115,6 +115,7 @@ function ElectionCard({ election }: { election: Election }) {
             <Button
               className="mt-4 w-full"
               onClick={() =>
+                // TODO: Oracle call & listen event
                 register.writeContract({
                   address: election.contractAddress,
                   args: [identity.commitment],

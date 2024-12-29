@@ -4,7 +4,8 @@ import { ISemaphore } from "../typechain-types"
 import votings from "../../data/votings.json"
 
 // --------------------Argument Processing--------------------
-export interface DeployVotingContractArgs {
+export interface DeployVotingContractArgs_Raw {
+    oracle: string
     semaphore: string
     pollingStationId: number
     votingId: number
@@ -14,12 +15,16 @@ export interface DeployVotingContractArgs {
     voteStartAt: Date
     voteEndAt: Date
 }
+export interface DeployVotingContractArgs {
+    oracle: string
+}
 
 // --------------------Functions--------------------
-task<DeployVotingContractArgs>("deploy-voting", "Deploy a voting contract", async (args, { ethers }) => {
+task<DeployVotingContractArgs_Raw>("deploy-voting", "Deploy a voting contract", async (args, { ethers }) => {
     const ElectionFactory = await ethers.getContractFactory("Election")
 
     const electionContract = await ElectionFactory.deploy(
+        args.oracle,
         args.semaphore,
         args.pollingStationId,
         args.votingId,
@@ -34,11 +39,11 @@ task<DeployVotingContractArgs>("deploy-voting", "Deploy a voting contract", asyn
         `Election contract for TPS ${args.pollingStationId} Voting ID ${args.votingId} deployed at ${await electionContract.getAddress()} with ${args.candidateCount} candidate. Registration ${args.registerStartAt}-${args.registerEndAt}. Voting ${args.voteStartAt}-${args.voteEndAt}`
     )
 
-    return electionContract.getAddress()
+    return electionContract
 })
 
 // --------------------Main--------------------
-task("deployVoting", "Deploy a voting contract", async (args, { run }) => {
+task<DeployVotingContractArgs>("deployVoting", "Deploy a voting contract", async (args, { run }) => {
     const { semaphore } = await run("deploy:semaphore", {
         logs: false
     })
@@ -49,7 +54,8 @@ task("deployVoting", "Deploy a voting contract", async (args, { run }) => {
 
     for (const voting of votings.votings) {
         for (const tps of voting.tpsIds) {
-            const address: string = await run("deploy-voting", {
+            const contract = await run("deploy-voting", {
+                oracle: args.oracle,
                 semaphore: await semaphoreContract.getAddress(),
                 pollingStationId: tps,
                 votingId: voting.votingId,
@@ -60,9 +66,9 @@ task("deployVoting", "Deploy a voting contract", async (args, { run }) => {
                 voteEndAt: new Date(votings.voteEndAt)
             })
 
-            electionAddresses[`${tps}-${voting.votingId}`] = address
+            electionAddresses[`${tps}-${voting.votingId}`] = await contract.getAddress()
         }
     }
 
     fs.writeFileSync("../web/public/contract-addresses.json", JSON.stringify(electionAddresses, null, 2))
-})
+}).addParam("oracle", "address to the oracle contract")
