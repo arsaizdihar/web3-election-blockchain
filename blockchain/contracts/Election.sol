@@ -95,13 +95,13 @@ contract Election {
         require(!hasJoined[msg.sender], "You can only join once");
 
         // TODO: Oracle call
-        try
-            oracle.createRequest(
-                Strings.toHexString(uint256(uint160(msg.sender)), 20),
-                pollingStationId,
-                votingId
-            )
-        {} catch {}
+        // try
+        //     oracle.createRequest(
+        //         Strings.toHexString(uint256(uint160(msg.sender)), 20),
+        //         pollingStationId,
+        //         votingId
+        //     )
+        // {} catch {}
 
         require(
             oracle.getRequestResult(
