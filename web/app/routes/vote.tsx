@@ -35,7 +35,17 @@ export default function Vote() {
 
   const { identity, getIdentity } = useIdentity(election?.tpsId ?? 0);
 
-  const vote = useWriteElectionSendVote();
+  const vote = useWriteElectionSendVote({
+    mutation: {
+      onSuccess: () => {
+        localStorage.setItem(
+          `hasVoted-${election?.tpsId}-${election?.votingId}`,
+          "true"
+        );
+        navigate("/", { replace: true });
+      },
+    },
+  });
   const navigate = useNavigate();
 
   if (!election) {
@@ -118,11 +128,6 @@ export default function Vote() {
                         proof.points,
                       ],
                     });
-                    localStorage.setItem(
-                      `hasVoted-${election.tpsId}-${election.votingId}`,
-                      "true"
-                    );
-                    navigate("/", { replace: true });
                   }}
                 >
                   Vote
