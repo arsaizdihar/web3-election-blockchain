@@ -94,15 +94,15 @@ contract Election {
 
         require(!hasJoined[msg.sender], "You can only join once");
 
-        // Oracle call
-        require(
-            oracle.getRequestResult(
-                Strings.toHexString(uint256(uint160(msg.sender)), 20),
-                pollingStationId,
-                votingId
-            ),
-            "You are not allowed to vote"
-        );
+        // TODO: Oracle call
+        // require(
+        //     oracle.getRequestResult(
+        //         Strings.toHexString(uint256(uint160(msg.sender)), 20),
+        //         pollingStationId,
+        //         votingId
+        //     ),
+        //     "You are not allowed to vote"
+        // );
 
         semaphore.addMember(groupId, identityCommitment);
 

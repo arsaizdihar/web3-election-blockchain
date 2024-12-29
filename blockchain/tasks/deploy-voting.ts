@@ -39,7 +39,7 @@ task<DeployVotingContractArgs_Raw>("deploy-voting", "Deploy a voting contract", 
         `Election contract for TPS ${args.pollingStationId} Voting ID ${args.votingId} deployed at ${await electionContract.getAddress()} with ${args.candidateCount} candidate. Registration ${args.registerStartAt}-${args.registerEndAt}. Voting ${args.voteStartAt}-${args.voteEndAt}`
     )
 
-    return electionContract.getAddress()
+    return electionContract
 })
 
 // --------------------Main--------------------

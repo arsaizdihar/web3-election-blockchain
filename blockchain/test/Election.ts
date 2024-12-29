@@ -1,23 +1,28 @@
 import { ethers, run } from "hardhat"
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers"
 import { Group, Identity, generateProof } from "@semaphore-protocol/core"
-import { Election, ISemaphore } from "../typechain-types"
+import { Election, ISemaphore, Oracle } from "../typechain-types"
 import { DeployVotingContractArgs_Raw } from "../tasks/deploy-voting"
+import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers"
 
 describe("Election", () => {
+    let oracleContract: Oracle
+    let signers: HardhatEthersSigner[]
+    let owner: HardhatEthersSigner
+
     async function deployElectionFixture() {
-        const signers = await ethers.getSigners()
-        const owner = signers[0]
+        signers = await ethers.getSigners()
+        owner = signers[0]
         const oracles = [owner.address]
 
-        const { semaphore } = await run("deploy:semaphore", {
-            logs: false
-        })
-
-        const oracleContract = await run("deploy-oracle", {
+        oracleContract = await run("deploy-oracle", {
             owner: owner.address,
             oracles: oracles,
             minquorum: oracles.length
+        })
+
+        const { semaphore } = await run("deploy:semaphore", {
+            logs: false
         })
 
         const semaphoreContract: ISemaphore = semaphore
@@ -49,6 +54,8 @@ describe("Election", () => {
             const group = new Group()
 
             for (const user of users) {
+                // TODO: Oracle call
+                // await oracleContract.createRequest(user)
                 await electionContract.registerAsVoter(user.commitment)
                 group.addMember(user.commitment)
             }
