@@ -1,2 +1,5 @@
+# Build files
+./web/public/contract-addresses.json
+
 # Flag for ignore
 *.ignore

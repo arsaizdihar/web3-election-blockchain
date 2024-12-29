@@ -1,18 +1,29 @@
-import { run } from "hardhat"
+import { ethers, run } from "hardhat"
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers"
 import { Group, Identity, generateProof } from "@semaphore-protocol/core"
 import { Election, ISemaphore } from "../typechain-types"
-import { DeployVotingContractArgs } from "../tasks/deploy-voting"
+import { DeployVotingContractArgs_Raw } from "../tasks/deploy-voting"
 
 describe("Election", () => {
     async function deployElectionFixture() {
+        const signers = await ethers.getSigners()
+        const owner = signers[0]
+        const oracles = [owner.address]
+
         const { semaphore } = await run("deploy:semaphore", {
             logs: false
         })
 
+        const oracleContract = await run("deploy-oracle", {
+            owner: owner.address,
+            oracles: oracles,
+            minquorum: oracles.length
+        })
+
         const semaphoreContract: ISemaphore = semaphore
 
-        const deployArgs: DeployVotingContractArgs = {
+        const deployArgs: DeployVotingContractArgs_Raw = {
+            oracle: await oracleContract.getAddress(),
             semaphore: await semaphoreContract.getAddress(),
             pollingStationId: 1,
             votingId: 1,
@@ -23,7 +34,7 @@ describe("Election", () => {
             voteEndAt: new Date("2025-12-24")
         }
 
-        const electionContract: Election = await run("deployVoting", deployArgs)
+        const electionContract: Election = await run("deploy-voting", deployArgs)
 
         const groupId = await electionContract.groupId()
 

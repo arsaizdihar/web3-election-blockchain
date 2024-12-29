@@ -2,22 +2,43 @@
 pragma solidity ^0.8.23;
 
 import "@semaphore-protocol/contracts/interfaces/ISemaphore.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+interface IOracle {
+    function createRequest(
+        string memory voter_id,
+        uint64 tps_id,
+        uint64 voting_id
+    ) external;
+
+    function getRequestResult(
+        string memory voter_id,
+        uint64 tps_id,
+        uint64 voting_id
+    ) external view returns (bool);
+}
 
 contract Election {
     ISemaphore public semaphore;
+    IOracle public oracle;
 
     /**
      *
      * @param pollingStationId ID TPS
      * @param votingId Voting process ID
-     * @param votedCandidateNumber Candidate number that was voted. Value from 1 to candidate count. Value 0 mean the vote is invalid
+     * @param votedCandidateNumber Candidate number that was voted.
+     Value from 1 to candidate count. Value 0 mean the vote is invalid
      */
-    event Voted(uint256 indexed pollingStationId, uint256 indexed votingId, uint32 votedCandidateNumber);
+    event Voted(
+        uint256 indexed pollingStationId,
+        uint256 indexed votingId,
+        uint32 votedCandidateNumber
+    );
 
     mapping(address => bool) private hasJoined;
 
-    uint256 public pollingStationId; // ID TPS
-    uint256 public votingId; // ID for voting process (example: Pilgub DKI Jakarta)
+    uint64 public pollingStationId; // ID TPS
+    uint64 public votingId; // ID for voting process (example: Pilgub DKI Jakarta)
     uint32 public candidateCount; // Candidate count;
 
     uint256 public groupId; // for Semaphore usage
@@ -34,9 +55,10 @@ contract Election {
     mapping(uint256 => bool) public usedNullifiers;
 
     constructor(
+        address oracleAddress,
         address semaphoreAddress,
-        uint256 ipollingStationId,
-        uint256 ivotingId,
+        uint64 ipollingStationId,
+        uint64 ivotingId,
         uint32 icandidateCount,
         uint256 iregisterStartAt,
         uint256 iregisterEndAt,
@@ -44,6 +66,7 @@ contract Election {
         uint256 ivoteEndAt
     ) {
         semaphore = ISemaphore(semaphoreAddress);
+        oracle = IOracle(oracleAddress);
 
         groupId = semaphore.createGroup();
         pollingStationId = ipollingStationId;
@@ -60,12 +83,26 @@ contract Election {
     }
 
     function registerAsVoter(uint256 identityCommitment) external {
-        require(block.timestamp >= registerStartAt, "Registration phase not yet started");
-        require(block.timestamp <= registerEndAt, "Registration phase has ended");
+        require(
+            block.timestamp >= registerStartAt,
+            "Registration phase not yet started"
+        );
+        require(
+            block.timestamp <= registerEndAt,
+            "Registration phase has ended"
+        );
 
         require(!hasJoined[msg.sender], "You can only join once");
 
-        // todo awe panggil oracle di sini
+        // Oracle call
+        require(
+            oracle.getRequestResult(
+                Strings.toHexString(uint256(uint160(msg.sender)), 20),
+                pollingStationId,
+                votingId
+            ),
+            "You are not allowed to vote"
+        );
 
         semaphore.addMember(groupId, identityCommitment);
 
@@ -73,7 +110,9 @@ contract Election {
         voterCommitments.push(identityCommitment);
     }
 
-    function validateAndConvert(uint256 voteMessage) private view returns (uint32) {
+    function validateAndConvert(
+        uint256 voteMessage
+    ) private view returns (uint32) {
         if (voteMessage >= 1 && voteMessage <= candidateCount) {
             return uint32(voteMessage);
         } else {
