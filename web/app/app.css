@@ -23,4 +23,10 @@ body {
     height: -webkit-fill-available;
     height: 100dvh;
   }
+
+  .min-h-full-screen {
+    min-height: 100vh; /* Fallback */
+    min-height: -webkit-fill-available;
+    min-height: 100dvh;
+  }
 }

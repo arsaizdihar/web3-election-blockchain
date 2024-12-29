@@ -359,6 +359,7 @@ export const oracleAbi = [
     inputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
     name: 'requests',
     outputs: [
+      { name: 'isCreated', internalType: 'bool', type: 'bool' },
       { name: 'isResolved', internalType: 'bool', type: 'bool' },
       { name: 'finalValue', internalType: 'bool', type: 'bool' },
       { name: 'yes', internalType: 'uint64', type: 'uint64' },

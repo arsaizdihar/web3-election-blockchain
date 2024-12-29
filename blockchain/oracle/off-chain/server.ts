@@ -66,6 +66,7 @@ function log(message: string) {
 async function subscribe() {
     log("Subscribed to the oracle contract.")
     oracleContract.on("OnNewRequest", async (voter_id: string, tps_id: number, voting_id: number) => {
+        voter_id = voter_id.toLowerCase()
         log(`Received new request`)
         log(`voter_id: ${voter_id}`)
         log(`tps_id: ${tps_id}`)

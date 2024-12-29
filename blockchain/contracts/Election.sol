@@ -3,19 +3,12 @@ pragma solidity ^0.8.23;
 
 import "@semaphore-protocol/contracts/interfaces/ISemaphore.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "hardhat/console.sol";
 
 interface IOracle {
-    function createRequest(
-        string memory voter_id,
-        uint64 tps_id,
-        uint64 voting_id
-    ) external;
+    function createRequest(string memory voter_id, uint64 tps_id, uint64 voting_id) external;
 
-    function getRequestResult(
-        string memory voter_id,
-        uint64 tps_id,
-        uint64 voting_id
-    ) external view returns (bool);
+    function getRequestResult(string memory voter_id, uint64 tps_id, uint64 voting_id) external view returns (bool);
 }
 
 contract Election {
@@ -29,11 +22,7 @@ contract Election {
      * @param votedCandidateNumber Candidate number that was voted.
      Value from 1 to candidate count. Value 0 mean the vote is invalid
      */
-    event Voted(
-        uint256 indexed pollingStationId,
-        uint256 indexed votingId,
-        uint32 votedCandidateNumber
-    );
+    event Voted(uint256 indexed pollingStationId, uint256 indexed votingId, uint32 votedCandidateNumber);
 
     mapping(address => bool) private hasJoined;
 
@@ -83,14 +72,8 @@ contract Election {
     }
 
     function registerAsVoter(uint256 identityCommitment) external {
-        require(
-            block.timestamp >= registerStartAt,
-            "Registration phase not yet started"
-        );
-        require(
-            block.timestamp <= registerEndAt,
-            "Registration phase has ended"
-        );
+        require(block.timestamp >= registerStartAt, "Registration phase not yet started");
+        require(block.timestamp <= registerEndAt, "Registration phase has ended");
 
         require(!hasJoined[msg.sender], "You can only join once");
 
@@ -104,11 +87,7 @@ contract Election {
         // {} catch {}
 
         require(
-            oracle.getRequestResult(
-                Strings.toHexString(uint256(uint160(msg.sender)), 20),
-                pollingStationId,
-                votingId
-            ),
+            oracle.getRequestResult(Strings.toHexString(uint256(uint160(msg.sender)), 20), pollingStationId, votingId),
             "You are not allowed to vote"
         );
 
@@ -118,9 +97,7 @@ contract Election {
         voterCommitments.push(identityCommitment);
     }
 
-    function validateAndConvert(
-        uint256 voteMessage
-    ) private view returns (uint32) {
+    function validateAndConvert(uint256 voteMessage) private view returns (uint32) {
         if (voteMessage >= 1 && voteMessage <= candidateCount) {
             return uint32(voteMessage);
         } else {

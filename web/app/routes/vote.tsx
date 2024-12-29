@@ -76,7 +76,7 @@ export default function Vote() {
         </CardHeader>
         <CardContent>
           <ul className="space-y-3">
-            {election.candidates.map((candidate, index) => (
+            {[...election.candidates, ""].map((candidate, index) => (
               <li
                 key={index}
                 className="rounded-lg bg-slate-800/50 p-3 text-slate-200 transition-colors"
@@ -85,7 +85,7 @@ export default function Vote() {
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500/30">
                     {index + 1}
                   </span>
-                  {candidate}
+                  {candidate === "" ? "Tidak Pilih" : candidate}
                 </div>
                 <Button
                   className="w-full mt-3"
@@ -110,7 +110,7 @@ export default function Vote() {
                       group.addMember(commitment);
                     }
 
-                    const feedback = BigInt(index + 1);
+                    const feedback = BigInt(candidate === "" ? 0 : index + 1);
 
                     const proof = await generateProof(
                       userIdentity,

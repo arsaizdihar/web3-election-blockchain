@@ -100,7 +100,7 @@ const VoteAggregator = () => {
   if (loading) return <div>Memuat Rekap Pilkada</div>;
 
   return (
-    <div className="pt-6 flex flex-col justify-center items-center max-w-screen-lg mx-auto">
+    <div className="pt-6 flex flex-col justify-center items-center max-w-screen-lg mx-auto min-h-full-screen">
       <div className="w-full flex">
         <Button asChild className="" variant={"secondary"}>
           <Link to="/">
