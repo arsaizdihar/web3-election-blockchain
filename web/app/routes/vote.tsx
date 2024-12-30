@@ -1,5 +1,6 @@
 import { generateProof, Group } from "@semaphore-protocol/core";
 import { Navigate, useNavigate, useParams } from "react-router";
+import { useAccount } from "wagmi";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
@@ -7,11 +8,13 @@ import {
   useReadElectionGroupId,
   useWriteElectionSendVote,
 } from "~/generated";
+import { getElectionCacheKey } from "~/lib/cache";
 import { useMyElections } from "~/lib/elections";
 import { useIdentity } from "~/lib/semaphore";
 
 export default function Vote() {
   const elections = useMyElections();
+  const { address } = useAccount();
   const { tpsId, votingId } = useParams();
 
   const election = elections.find(
@@ -52,7 +55,16 @@ export default function Vote() {
     return <Navigate to="/" replace />;
   }
 
-  if (localStorage.getItem(`hasVoted-${election.tpsId}-${election.votingId}`)) {
+  if (
+    localStorage.getItem(
+      getElectionCacheKey(
+        "hasVoted",
+        address,
+        election.tpsId,
+        election.votingId
+      )
+    )
+  ) {
     return <Navigate to="/" replace />;
   }
 

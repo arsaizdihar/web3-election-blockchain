@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   useReadElectionGetVoterCommitments,
   useReadOracleGetRequestResult,
-  useWatchOracleOnQuorumReachedEvent,
   useWriteElectionRegisterAsVoter,
   useWriteOracleCreateRequest,
 } from "~/generated";
+import { getElectionCacheKey } from "~/lib/cache";
 import {
   useMyElections,
   useOracleAddress,
@@ -43,27 +43,6 @@ export default function Home() {
 function ElectionCard({ election }: { election: Election }) {
   const navigate = useNavigate();
   const oracleAddress = useOracleAddress();
-  useWatchOracleOnQuorumReachedEvent({
-    address: oracleAddress,
-    onLogs: (logs) => {
-      const isSuccess = logs.some((log) => {
-        const { voter_id, tps_id, voting_id, result } = log.args;
-
-        return (
-          voter_id === address &&
-          tps_id === BigInt(election.tpsId) &&
-          voting_id === BigInt(election.votingId)
-        );
-      });
-
-      if (isSuccess) {
-        register.writeContract({
-          address: election.contractAddress,
-          args: [identity.commitment],
-        });
-      }
-    },
-  });
 
   const { address } = useAccount();
   const { data: commitments, refetch: refetchCommitments } =
@@ -76,7 +55,12 @@ function ElectionCard({ election }: { election: Election }) {
       onSuccess: () => {
         refetchCommitments();
         localStorage.setItem(
-          `isRegistered-${election.tpsId}-${election.votingId}`,
+          getElectionCacheKey(
+            "isRegistered",
+            address,
+            election.tpsId,
+            election.votingId
+          ),
           "true"
         );
       },
@@ -87,13 +71,23 @@ function ElectionCard({ election }: { election: Election }) {
 
   const hasVoted = useMemo(() => {
     return localStorage.getItem(
-      `hasVoted-${election.tpsId}-${election.votingId}`
+      getElectionCacheKey(
+        "hasVoted",
+        address,
+        election.tpsId,
+        election.votingId
+      )
     );
   }, [election.tpsId, election.votingId]);
 
   const isRegistered = useMemo(() => {
     const cache = localStorage.getItem(
-      `isRegistered-${election.tpsId}-${election.votingId}`
+      getElectionCacheKey(
+        "isRegistered",
+        address,
+        election.tpsId,
+        election.votingId
+      )
     );
     if (cache === "true") {
       return true;
@@ -102,14 +96,17 @@ function ElectionCard({ election }: { election: Election }) {
     const isRegistered = commitments.includes(identity.commitment);
     if (isRegistered) {
       localStorage.setItem(
-        `isRegistered-${election.tpsId}-${election.votingId}`,
+        getElectionCacheKey(
+          "isRegistered",
+          address,
+          election.tpsId,
+          election.votingId
+        ),
         "true"
       );
     }
     return isRegistered;
   }, [commitments, identity]);
-
-  console.log({ isRegistered });
 
   const requestOracle = useWriteOracleCreateRequest({
     mutation: {
@@ -142,11 +139,6 @@ function ElectionCard({ election }: { election: Election }) {
     },
   });
 
-  console.log({
-    isSuccessOracle,
-    votingId: election.votingId,
-    errorOracle: errorOracle?.message,
-  });
   return (
     <Card className="group relative overflow-hidden transition-all hover:shadow-lg h-full flex flex-col">
       <CardHeader>
@@ -225,11 +217,6 @@ function ElectionCard({ election }: { election: Election }) {
                     "Request has not been created yet"
                   )
                 ) {
-                  console.log({
-                    address,
-                    tpsId: election.tpsId,
-                    votingId: election.votingId,
-                  });
                   await requestOracle.writeContractAsync({
                     address: oracleAddress,
                     args: [

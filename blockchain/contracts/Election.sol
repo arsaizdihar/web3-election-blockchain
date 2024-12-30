@@ -3,7 +3,6 @@ pragma solidity ^0.8.23;
 
 import "@semaphore-protocol/contracts/interfaces/ISemaphore.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "hardhat/console.sol";
 
 interface IOracle {
     function createRequest(string memory voter_id, uint64 tps_id, uint64 voting_id) external;
