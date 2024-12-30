@@ -139,7 +139,7 @@ export default function Vote() {
                     });
                   }}
                 >
-                  Vote
+                  Coblos
                 </Button>
               </li>
             ))}

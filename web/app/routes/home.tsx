@@ -205,7 +205,7 @@ function ElectionCard({ election }: { election: Election }) {
                   navigate(`/vote/${election.votingId}/${election.tpsId}`)
                 }
               >
-                Mulai Vote
+                Mulai Coblos
               </Button>
             );
           }
@@ -244,7 +244,7 @@ function ElectionCard({ election }: { election: Election }) {
                 });
               }}
             >
-              {!isSuccessOracle ? "Verifikasi Data" : "Daftar Vote"}
+              {!isSuccessOracle ? "Verifikasi Data" : "Daftar Pemilihan"}
             </Button>
           );
         })}
