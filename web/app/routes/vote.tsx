@@ -8,7 +8,7 @@ import {
   useReadElectionGroupId,
   useWriteElectionSendVote,
 } from "~/generated";
-import { getElectionCacheKey } from "~/lib/cache";
+import { getElectionCacheKey, setIsVoted } from "~/lib/cache";
 import { useMyElections } from "~/lib/elections";
 import { useIdentity } from "~/lib/semaphore";
 
@@ -41,10 +41,7 @@ export default function Vote() {
   const vote = useWriteElectionSendVote({
     mutation: {
       onSuccess: () => {
-        localStorage.setItem(
-          `hasVoted-${election?.tpsId}-${election?.votingId}`,
-          "true"
-        );
+        setIsVoted(address, election!.tpsId, election!.votingId);
         navigate("/", { replace: true });
       },
     },

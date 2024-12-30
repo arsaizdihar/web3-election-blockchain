@@ -89,11 +89,13 @@ function ElectionCard({ election }: { election: Election }) {
         election.votingId
       )
     );
+    console.log({ commitments, identity, votingId: election.votingId });
     if (cache === "true") {
       return true;
     }
     if (!commitments || !identity) return false;
     const isRegistered = commitments.includes(identity.commitment);
+    console.log(commitments);
     if (isRegistered) {
       localStorage.setItem(
         getElectionCacheKey(
@@ -135,7 +137,7 @@ function ElectionCard({ election }: { election: Election }) {
         }
         return false;
       },
-      retryDelay: 5000,
+      retryDelay: 2000,
     },
   });
 
@@ -149,7 +151,7 @@ function ElectionCard({ election }: { election: Election }) {
       </CardHeader>
       <CardContent className="flex-1 flex flex-col justify-end">
         {iife(() => {
-          if (isLoadingOracle) {
+          if (isLoadingOracle || register.isPending) {
             return (
               <div className="flex justify-center h-9 items-center">
                 <svg
@@ -242,7 +244,7 @@ function ElectionCard({ election }: { election: Election }) {
                 });
               }}
             >
-              Daftar Vote
+              {!isSuccessOracle ? "Verifikasi Data" : "Daftar Vote"}
             </Button>
           );
         })}

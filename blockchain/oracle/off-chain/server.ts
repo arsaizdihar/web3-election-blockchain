@@ -1,6 +1,6 @@
 import axios from "axios"
 import yargs from "yargs"
-import { ethers } from "ethers"
+import { ethers, parseUnits } from "ethers"
 import { hideBin } from "yargs/helpers"
 
 //--------------------Argument Processing--------------------

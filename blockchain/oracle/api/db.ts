@@ -91,4 +91,10 @@ export class Db {
             throw error
         }
     }
+
+    async GetTpsId(voter_id: string): Promise<number> {
+        const dbInstance = await Db.getInstance()
+        const result = await dbInstance.get(`SELECT tps_id FROM voters WHERE voter_id = ?`, voter_id)
+        return result?.tps_id || 0
+    }
 }

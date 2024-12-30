@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server"
 import { Hono } from "hono"
+import { cors } from "hono/cors"
 import { Db } from "./db"
 
 //--------------------Constants--------------------
@@ -27,6 +28,17 @@ app.use("*", async (c, next) => {
 app.get("/", (c) => {
     return c.text("Oracle server is running\n")
 })
+app.get(
+    "/tps/:voter_id",
+    cors({
+        origin: "*"
+    }),
+    async (c) => {
+        const voter_id = c.req.param("voter_id")
+        const result = await db.GetTpsId(voter_id.toLowerCase())
+        return c.json({ tps_id: result })
+    }
+)
 app.get("/voters", async (c) => {
     try {
         const result = await db.GetVoters()
